@@ -1,5 +1,11 @@
 // Root route, e.g. default page. 
 
+/**
+// ID's e.g. <main id="main-content" & <section id="activities" provide navigation destinations within this page.
+ * `main-content` is targeted by the skip link, while `activities` is targeted
+ * by the header navigation. `aria-labelledby` gives the activity section an
+ * accessible name using its visible heading.
+*/
 export default function HomePage() {
   return (
     <main 

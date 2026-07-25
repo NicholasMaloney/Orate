@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Orate",
-    template: "%s | Orate" // The %s is replaced with the sub page’s title
+    template: "%s | Orate"
   },
   description: "A teacher-facing builder for playable phoneme Wordle and Word Search activities.",
 };
