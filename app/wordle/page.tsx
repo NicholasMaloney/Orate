@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WordleBuilder } from "@/features/wordle/wordle-builder";
 
 export const metadata: Metadata = {
     title: "Wordle Builder",
@@ -24,23 +25,8 @@ export default function WordlePage() {
                     Choose a target word, configure the learner support, and preview the
                     activity before downloading it.
                 </p>
-
-                <section
-                    className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-                    aria-labelledby="wordle-builder-heading"
-                >
-                <h2
-                    id="wordle-builder-heading"
-                    className="text-2xl font-semibold"
-                >
-                    Wordle configuration
-                </h2>
-
-                <p className="mt-3 text-slate-600">
-                    The configuration controls will be added in the next development
-                    step.
-                </p>
-                </section>
+                
+                <WordleBuilder />
             </section>
         </main>
     );
