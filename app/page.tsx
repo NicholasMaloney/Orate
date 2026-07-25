@@ -2,7 +2,10 @@
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-950">
+    <main 
+      id="main-content"
+      className="flex-1 bg-slate-50 text-slate-950"
+      >
       <section className="mx-auto max-w-6xl px-6 py-16">
         <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
           Phoneme Activities for teachers
@@ -17,7 +20,11 @@ export default function HomePage() {
           Each activity downloads as a standalone file that works offline.
         </p>
 
-        <section className="mt-12" aria-labelledby="activities-heading">
+        <section 
+          id="activities"
+          className="mt-12" 
+          aria-labelledby="activities-heading"
+          >
           <h2 id="activities-heading" className="text-2xl font-semibold">
             Activity builders
           </h2>
