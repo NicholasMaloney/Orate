@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 // The home page defaults to Orate.
-// The %s is replaced with the sub page’s title
+
 export const metadata: Metadata = {
   title: {
     default: "Orate",
-    template: "%s | Orate"
+    template: "%s | Orate" // The %s is replaced with the sub page’s title
   },
   description: "A teacher-facing builder for playable phoneme Wordle and Word Search activities.",
 };
@@ -42,7 +42,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        
+
         <SiteHeader />
         {children}
       </body>
