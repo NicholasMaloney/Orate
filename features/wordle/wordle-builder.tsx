@@ -18,7 +18,7 @@ export function WordleBuilder() {
 
     const [difficulty, setDifficulty] = useState<Difficulty>("standard");
     const [hintsEnabled, setHintsEnabled] = useState(true);
-    
+
     const config: WordleConfig = {
         wordId,
         difficulty,
@@ -64,14 +64,14 @@ export function WordleBuilder() {
                     >
                         {WORDLE_WORDS.map((word) => (// Each Wordle word becomes one selectable option
                             <option key={word.id} value={word.id}>
-                                {word.ipa} - {word.english} 
+                                {word.ipa} - {word.english}
                             </option>
                         ))}
                     </select>
                 </div>
-               
+
                 {/* Contains the difficulty controls displayed to the teacher. */}
-                <fieldset 
+                <fieldset
                     className="mt-8"
                     aria-describedby="difficulty-help"
                 >
@@ -80,9 +80,9 @@ export function WordleBuilder() {
                     </legend>
 
                     <p id="difficulty-help" className="mt-1 text-sm text-slate-600">
-                        Difficulty Controls how many attempts the student receives. 
+                        Difficulty Controls how many attempts the student receives.
                     </p>
-                    
+
                     <div className="mt-4 space-y-3">
                         {DIFFICULTY_ORDER.map((option) => {
                             const details = DIFFICULTY_DETAILS[option];
@@ -92,12 +92,12 @@ export function WordleBuilder() {
                                     key={option}
                                     className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 hover:border-blue-300"
                                 >
-                                    <input 
+                                    <input
                                         type="radio"
                                         name="wordle-difficulty"
                                         value={option}
                                         checked={difficulty === option}
-                                        onChange={() => setDifficulty(option)} 
+                                        onChange={() => setDifficulty(option)}
                                         className="mt-1 h-4 w-4 shrink-0 accent-blue-700"
                                     />
                                     <span>
@@ -112,7 +112,7 @@ export function WordleBuilder() {
                                 </label>
                             );
                         })}
-                    </div>  
+                    </div>
                 </fieldset>
 
                 {/** Adds the option to enable phoneme hints and show english grapheme associated with each IPA sound.  */}
@@ -143,7 +143,7 @@ export function WordleBuilder() {
                 className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
                 aria-labelledby="wordle-preview-heading"
             >
-                <h2 
+                <h2
                     id="wordle-preview-heading"
                     className="text-2xl font-semibold"
                 >
@@ -161,14 +161,14 @@ export function WordleBuilder() {
                 <p className="mt-2 text-lg text-slate-600">
                     {selectedWord.english}
                 </p>
-                
+
                 <div
                     className="mt-6 flex flex-wrap gap-3"
                     aria-label={`Phoneme sequence for ${selectedWord.english}`}
                 >
                     {selectedWord.phonemeIds.map((phonemeId, position) => {
                         const phoneme = getPhoneme(phonemeId);
-                        
+
                         // returns the selected word, the ipa symbols, english character representation, and the word in english
                         // checks to see if hints or graphene is enabled - if config.hintsEnabled = True then show hints etc...
                         return (
@@ -176,7 +176,7 @@ export function WordleBuilder() {
                                 key={`${phonemeId}-${position}`}
                                 title={
                                     config.hintsEnabled
-                                        ?`${phoneme.grapheme} as in ${phoneme.exampleWord}`
+                                        ? `${phoneme.grapheme} as in ${phoneme.exampleWord}`
                                         : undefined
                                 }
                                 aria-label={`${phoneme.spokenName} sound`}
@@ -190,21 +190,24 @@ export function WordleBuilder() {
                                     <span className="text-xl text-slate-600">
                                         {phoneme.grapheme}
                                     </span>
-                                    ) : null}
+                                ) : null}
 
                             </span>
                         );
                     })}
                 </div>
-                
+
                 {/** Passes the difficulty config to the wordle board, including hints etc. */}
-                <WordleBoard config={config} />
+                <WordleBoard
+                    key={`${config.wordId}-${config.difficulty}`}
+                    config={config}
+                />
 
                 <div className="mt-8 border-t border-slate-200 pt-6">
                     <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
                         Difficulty
                     </p>
-                    
+
                     <p className="mt-3 text-sm text-slate-600">
                         Phoneme hints:{" "}
                         <strong>
