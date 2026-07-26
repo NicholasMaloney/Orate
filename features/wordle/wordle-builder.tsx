@@ -3,14 +3,23 @@
 import { useState } from "react";
 import { getPhoneme } from "@/lib/phoneme-definitions";
 import { getWordleWord, WORDLE_WORDS } from "@/lib/phonemes";
+import {
+    DIFFICULTY_DETAILS,
+    DIFFICULTY_ORDER,
+} from "@/lib/difficulty";
+import type { Difficulty } from "@/lib/types";
 
 export function WordleBuilder() {
     const [
         wordId,     // Current state value
         setWordId   // Function that updates the state
     ] = useState("thin");
+
+    const [difficulty, setDifficulty] = useState<Difficulty>("standard");
     
     const selectedWord = getWordleWord(wordId);
+
+    const selectDifficulty = DIFFICULTY_DETAILS[difficulty];
 
     return (
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -53,6 +62,51 @@ export function WordleBuilder() {
                         ))}
                     </select>
                 </div>
+               
+                {/* Contains the difficulty controls displayed to the teacher. */}
+                <fieldset 
+                    className="mt-8"
+                    aria-describedby="difficulty-help"
+                >
+                    <legend className="font-semibold text-slate-800">
+                        Difficulty
+                    </legend>
+
+                    <p id="difficulty-help" className="mt-1 text-sm text-slate-600">
+                        Difficulty Controls how many attempts the student receives. 
+                    </p>
+                    
+                    <div className="mt-4 space-y-3">
+                        {DIFFICULTY_ORDER.map((option) => {
+                            const details = DIFFICULTY_DETAILS[option];
+
+                            return (
+                                <label
+                                    key={option}
+                                    className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 hover:border-blue-300"
+                                >
+                                    <input 
+                                        type="radio"
+                                        name="wordle-difficulty"
+                                        value={option}
+                                        checked={difficulty === option}
+                                        onChange={() => setDifficulty(option)} 
+                                        className="mt-1 h-4 w-4 shrink-0 accent-blue-700"
+                                    />
+                                    <span>
+                                        <strong className="block text-slate-900">
+                                            {details.label}
+                                        </strong>
+
+                                        <span className="mt-1 block text-sm text-slate-600">
+                                            {details.attempts} attempts - {details.description}
+                                        </span>
+                                    </span>
+                                </label>
+                            );
+                        })}
+                    </div>  
+                </fieldset> 
             </section>
 
             <section
@@ -102,6 +156,19 @@ export function WordleBuilder() {
                             </span>
                         );
                     })}
+                </div>
+
+                <div className="mt-8 border-t border-slate-200 pt-6">
+                    <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+                        Difficulty
+                    </p>
+
+                    <p className="mt-2 text-lg text-slate-800">
+                        <strong>{selectDifficulty.label}</strong>
+                        {" · "}
+                        {selectDifficulty.attempts} attempts
+                    </p>
+
                 </div>
             </section>
         </div>
