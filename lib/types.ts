@@ -28,3 +28,10 @@ export interface CompletePhonemeWord extends PhonemeWord {
 
 // Difficulty values that will be accepted by Wordle and Word search 
 export type Difficulty = "easy" | "standard" | "challenging"
+
+// Settings / config for teachers when creating a Wordle activity - will be used later for the game export function 
+export interface WordleConfig {
+    readonly wordId: string;
+    readonly difficulty: Difficulty;
+    readonly hintsEnabled: boolean;
+}
