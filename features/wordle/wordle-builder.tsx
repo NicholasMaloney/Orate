@@ -45,7 +45,7 @@ export function WordleBuilder() {
                         aria-describedby="target-word-help"
                         className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     >
-                        {PHONEME_WORDS.map((word) => (
+                        {PHONEME_WORDS.map((word) => ( // Each word becomes one selectable option
                             <option key={word.id} value={word.id}>
                                 {word.ipa} - {word.english} 
                             </option>
