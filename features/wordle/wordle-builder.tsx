@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { getWord, PHONEME_WORDS } from "@/lib/phonemes";
+import { getPhoneme } from "@/lib/phoneme-definitions";
+import { getWordleWord, WORDLE_WORDS } from "@/lib/phonemes";
 
 export function WordleBuilder() {
     const [
-        wordID,     // Current state value
-        setWordID   // Function that updates the state
+        wordId,     // Current state value
+        setWordId   // Function that updates the state
     ] = useState("thin");
     
-    const selectedWord = getWord(wordID);
+    const selectedWord = getWordleWord(wordId);
 
     return (
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -40,12 +41,12 @@ export function WordleBuilder() {
                     <select // Get desired word that will be targeted. 
                         id="target-word"
                         name="targetWord"
-                        value={wordID}
-                        onChange={(changeEvent) => setWordID(changeEvent.target.value)}
+                        value={wordId}
+                        onChange={(changeEvent) => setWordId(changeEvent.target.value)}
                         aria-describedby="target-word-help"
                         className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     >
-                        {PHONEME_WORDS.map((word) => ( // Each word becomes one selectable option
+                        {WORDLE_WORDS.map((word) => (// Each Wordle word becomes one selectable option
                             <option key={word.id} value={word.id}>
                                 {word.ipa} - {word.english} 
                             </option>
@@ -76,6 +77,32 @@ export function WordleBuilder() {
                 <p className="mt-2 text-lg text-slate-600">
                     {selectedWord.english}
                 </p>
+                
+                <div
+                    className="mt-6 flex flex-wrap gap-3"
+                    aria-label={`Phoneme sequence for ${selectedWord.english}`}
+                >
+                    {selectedWord.phonemeIds.map((phonemeId, position) => {
+                        const phoneme = getPhoneme(phonemeId);
+                        
+                        // returns the selected word, the ipa symbols, english character representation, and the word in english
+                        return (
+                            <span
+                                key={`${phonemeId}-${position}`}
+                                title={`${phoneme.grapheme} as in ${phoneme.exampleWord}`}
+                                className="flex min-w-20 flex-col items-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                            >
+                                <strong className="text-xl text-slate-950">
+                                    /{phoneme.ipaSymbol}/
+                                </strong>
+
+                                <span className="text-xl text-slate-600">
+                                    {phoneme.grapheme}
+                                </span>
+                            </span>
+                        );
+                    })}
+                </div>
             </section>
         </div>
     );
