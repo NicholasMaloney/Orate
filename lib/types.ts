@@ -25,3 +25,6 @@ export interface PhonemeWord { // interface = schema similar to JSON
 export interface CompletePhonemeWord extends PhonemeWord {
     readonly phonemeIds: readonly string[];
 }
+
+// Difficulty values that will be accepted by Wordle and Word search 
+export type Difficulty = "easy" | "standard" | "challenging"
