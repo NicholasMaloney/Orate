@@ -7,6 +7,7 @@ import {
     DIFFICULTY_DETAILS,
     DIFFICULTY_ORDER,
 } from "@/lib/difficulty";
+import { WordleBoard } from "@/features/wordle/wordle-board";
 import type { Difficulty, WordleConfig } from "@/lib/types";
 
 export function WordleBuilder() {
@@ -195,6 +196,9 @@ export function WordleBuilder() {
                         );
                     })}
                 </div>
+                
+                {/** Passes the difficulty config to the wordle board, including hints etc. */}
+                <WordleBoard config={config} />
 
                 <div className="mt-8 border-t border-slate-200 pt-6">
                     <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
