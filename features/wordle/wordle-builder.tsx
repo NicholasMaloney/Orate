@@ -7,7 +7,7 @@ import {
     DIFFICULTY_DETAILS,
     DIFFICULTY_ORDER,
 } from "@/lib/difficulty";
-import type { Difficulty } from "@/lib/types";
+import type { Difficulty, WordleConfig } from "@/lib/types";
 
 export function WordleBuilder() {
     const [
@@ -16,10 +16,16 @@ export function WordleBuilder() {
     ] = useState("thin");
 
     const [difficulty, setDifficulty] = useState<Difficulty>("standard");
+    const [hintsEnabled, setHintsEnabled] = useState(true);
     
-    const selectedWord = getWordleWord(wordId);
+    const config: WordleConfig = {
+        wordId,
+        difficulty,
+        hintsEnabled,
+    };
 
-    const selectDifficulty = DIFFICULTY_DETAILS[difficulty];
+    const selectedWord = getWordleWord(config.wordId);
+    const selectedDifficulty = DIFFICULTY_DETAILS[config.difficulty];
 
     return (
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -106,7 +112,30 @@ export function WordleBuilder() {
                             );
                         })}
                     </div>  
-                </fieldset> 
+                </fieldset>
+
+                {/** Adds the option to enable phoneme hints and show english grapheme associated with each IPA sound.  */}
+                <label className="mt-8 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 p-4 hover:border-blue-300">
+                    <span>
+                        <strong className="block text-slate-900">
+                            Show phoneme hints
+                        </strong>
+
+                        <span className="mt-1 block text-sm text-slate-600">
+                            Show the English grapheme associated with each IPA sound.
+                        </span>
+                    </span>
+
+                    <input
+                        type="checkbox"
+                        name="wordleHints"
+                        checked={hintsEnabled}
+                        onChange={(changeEvent) =>
+                            setHintsEnabled(changeEvent.target.checked)
+                        }
+                        className="mt-1 h-5 w-5 shrink-0 accent-blue-700"
+                    />
+                </label>
             </section>
 
             <section
@@ -140,19 +169,28 @@ export function WordleBuilder() {
                         const phoneme = getPhoneme(phonemeId);
                         
                         // returns the selected word, the ipa symbols, english character representation, and the word in english
+                        // checks to see if hints or graphene is enabled - if config.hintsEnabled = True then show hints etc...
                         return (
                             <span
                                 key={`${phonemeId}-${position}`}
-                                title={`${phoneme.grapheme} as in ${phoneme.exampleWord}`}
+                                title={
+                                    config.hintsEnabled
+                                        ?`${phoneme.grapheme} as in ${phoneme.exampleWord}`
+                                        : undefined
+                                }
+                                aria-label={`${phoneme.spokenName} sound`}
                                 className="flex min-w-20 flex-col items-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
                             >
                                 <strong className="text-xl text-slate-950">
                                     /{phoneme.ipaSymbol}/
                                 </strong>
 
-                                <span className="text-xl text-slate-600">
-                                    {phoneme.grapheme}
-                                </span>
+                                {config.hintsEnabled ? (
+                                    <span className="text-xl text-slate-600">
+                                        {phoneme.grapheme}
+                                    </span>
+                                    ) : null}
+
                             </span>
                         );
                     })}
@@ -162,11 +200,18 @@ export function WordleBuilder() {
                     <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
                         Difficulty
                     </p>
+                    
+                    <p className="mt-3 text-sm text-slate-600">
+                        Phoneme hints:{" "}
+                        <strong>
+                            {config.hintsEnabled ? "Shown" : "Hidden"}
+                        </strong>
+                    </p>
 
                     <p className="mt-2 text-lg text-slate-800">
-                        <strong>{selectDifficulty.label}</strong>
+                        <strong>{selectedDifficulty.label}</strong>
                         {" · "}
-                        {selectDifficulty.attempts} attempts
+                        {selectedDifficulty.attempts} attempts
                     </p>
 
                 </div>

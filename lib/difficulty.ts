@@ -21,13 +21,13 @@ export const DIFFICULTY_DETAILS: Readonly<
     },
 
     standard: {
-        label: "standard",
+        label: "Standard",
         attempts: 6,
         description: "A balanced number of attempts for most learners."
     },
 
     challenging: {
-        label: "challenging",
+        label: "Challenging",
         attempts: 4,
         description: "Fewer attempts for a more challenging activity."
     }
