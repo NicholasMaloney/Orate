@@ -1,4 +1,4 @@
-import type { PhonemeWord } from "@/lib/types";
+import type { PhonemeWord, CompletePhonemeWord, } from "@/lib/types";
 
 // Fix list of word choices shared between wordle and word search 
 // Acts as a source of truth 
@@ -79,6 +79,7 @@ export const PHONEME_WORDS: readonly PhonemeWord[] = [
         id: "thin",
         english: "thin",
         ipa: "/θɪn/",
+        phonemeIds: ["theta", "short-i", "n"],
     },
     {
         id: "then",
@@ -89,16 +90,19 @@ export const PHONEME_WORDS: readonly PhonemeWord[] = [
         id: "ship",
         english: "ship",
         ipa: "/ʃɪp/",
+        phonemeIds: ["sh", "short-i", "p"],
     },
     {
         id: "chin",
         english: "chin",
         ipa: "/tʃɪn/",
+        phonemeIds: ["ch", "short-i", "n"],
     },
     {
         id: "jam",
         english: "jam",
         ipa: "/dʒæm/",
+        phonemeIds: ["j", "short-a", "m"],
     },
     {
         id: "yes",
@@ -124,6 +128,7 @@ export const PHONEME_WORDS: readonly PhonemeWord[] = [
         id: "fan",
         english: "fan",
         ipa: "/fæn/",
+        phonemeIds: ["f", "short-a", "n"],
     },
     {
         id: "van",
@@ -461,13 +466,33 @@ export const PHONEME_WORDS: readonly PhonemeWord[] = [
     },
 ]; 
 
+// Returns a given word if it has a complete phoneme sequence i.e a compelte word
+export function isCompletePhonemeWord(
+  word: PhonemeWord,
+): word is CompletePhonemeWord {
+  return word.phonemeIds !== undefined && word.phonemeIds.length > 0;
+}
 
-// Finds a word based on its ID and confirms that it is a valid word by comparing its ID 
+//  Wordle currently exposes only words with complete token data.
+export const WORDLE_WORDS = PHONEME_WORDS.filter(isCompletePhonemeWord);
+
+// Finds a word based on its ID and confirms that it is a valid word by comparing its ID
 export function getWord(wordID:string): PhonemeWord {
     const word = PHONEME_WORDS.find((candidate) => candidate.id === wordID);
 
     if (!word) {
         throw new Error(`Unknown phoneme word: ${wordID}`)
+    }
+
+    return word;
+}
+
+// gets a word for wordle that is a Complete phoneme word
+export function getWordleWord(wordId: string): CompletePhonemeWord {
+    const word = getWord(wordId);
+
+    if (!isCompletePhonemeWord(word)) {
+        throw new Error(`Word is not ready for Wordle: ${wordId}`);
     }
 
     return word;
