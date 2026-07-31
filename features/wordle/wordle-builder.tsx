@@ -9,6 +9,8 @@ import {
 } from "@/lib/difficulty";
 import { WordleBoard } from "@/features/wordle/wordle-board";
 import type { Difficulty, WordleConfig } from "@/lib/types";
+import { downloadHtmlFile } from "@/lib/download";
+import { buildStandaloneWordleHtml } from "@/lib/standalone";
 
 export function WordleBuilder() {
     const [
@@ -27,6 +29,20 @@ export function WordleBuilder() {
 
     const selectedWord = getWordleWord(config.wordId);
     const selectedDifficulty = DIFFICULTY_DETAILS[config.difficulty];
+
+    const [downloadStatus, setDownloadStatus] = useState("");
+    const standaloneHtml = buildStandaloneWordleHtml(config);
+
+    // Download handler 
+    function handleDownload() {
+        const filename = `orate-wordle-${config.wordId}.html`;
+
+        downloadHtmlFile(filename, standaloneHtml);
+
+        setDownloadStatus(
+            `Downloaded ${filename}. Open it in a browser to test the learner activity.`,
+        );
+    }
 
     return (
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -137,8 +153,34 @@ export function WordleBuilder() {
                         className="mt-1 h-5 w-5 shrink-0 accent-blue-700"
                     />
                 </label>
-            </section>
 
+                {/** Download button */ }
+                <div className="mt-8 border-t border-slate-200 pt-6">
+                    <h3 className="font-semibold text-slate-900">
+                        Download learner activity
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-600">
+                        Generate one self-contained HTML file using the current settings.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleDownload}
+                        className="mt-4 rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                    >
+                        Download HTML
+                    </button>
+
+                    <p
+                        className="mt-3 min-h-6 text-sm text-slate-600"
+                        aria-live="polite"
+                    >
+                        {downloadStatus}
+                    </p>
+                </div>
+            </section>
+            
             <section
                 className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
                 aria-labelledby="wordle-preview-heading"
