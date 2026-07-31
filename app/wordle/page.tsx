@@ -26,7 +26,7 @@ export default function WordlePage() {
                     activity before downloading it.
                 </p>
                 
-                <WordleBuilder />
+                <WordleBuilder/>
             </section>
         </main>
     );

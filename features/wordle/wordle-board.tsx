@@ -3,12 +3,25 @@ import { useState } from "react";
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
 import { getWordleWord } from "@/lib/phonemes";
 import { getPhoneme, PHONEMES } from "@/lib/phoneme-definitions";
-import type { WordleConfig } from "@/lib/types";
+import { scoreGuess } from "@/lib/wordle-scoring";
+import type { GuessState, WordleConfig } from "@/lib/types";
 
 // accepts the Wordle config and builds a game board based on it 
 interface WordleBoardProps {
     readonly config: WordleConfig;
 }
+
+// scoreing styles and lables - visulises the scoring logic on the frontend 
+const GUESS_STATE_STYLES: Readonly<Record<GuessState, string>> = {
+    correct: "border-green-700 bg-green-600 text-white",
+    present: "border-amber-600 bg-amber-400 text-slate-950",
+    absent: "border-slate-600 bg-slate-500 text-white",
+};
+const GUESS_STATE_LABELS: Readonly<Record<GuessState, string>> = {
+    correct: "correct phoneme in the correct position",
+    present: "phoneme appears in another position",
+    absent: "phoneme does not appear in the word",
+};
 
 // render an empty Wordle board using the current configuration 
 // the number of rows comes from the difficulty selected 
@@ -23,14 +36,32 @@ export function WordleBoard({ config }: WordleBoardProps) {
     const [statusMessage, setStatusMessage] = useState(
         `Choose ${phonemeCount} phonemes to create a guess.`
     );
-    const gameIsFull = submittedGuesses.length >= maximumAttempts;
+
+    const latestGuess = submittedGuesses.at(-1);
+
+    const latestScore = 
+        latestGuess === undefined
+            ? undefined
+            : scoreGuess(
+                latestGuess, 
+                selectedWord.phonemeIds
+            );
+    
+    const hasWon = 
+        latestScore !== undefined &&
+        latestScore.every((state) => state === "correct");
+    
+    const hasUsedAllAttempts = 
+        submittedGuesses.length >= maximumAttempts;
+    
+    const gameIsOver = hasWon || hasUsedAllAttempts;
 
     // This creates the game board and renders the guesses that have been entered 
     const boardRows = Array.from(
         { length: maximumAttempts },
         (_, rowIndex) => {
             const isCurrentRow =
-                rowIndex === submittedGuesses.length && !gameIsFull;
+                rowIndex === submittedGuesses.length && !gameIsOver;
 
             const guessForRow =
                 submittedGuesses[rowIndex] ?? (isCurrentRow ? currentGuess : []);
@@ -47,7 +78,7 @@ export function WordleBoard({ config }: WordleBoardProps) {
 
     // Adds a selected phoneme to the current guess.
     function handlePhonemeInput(phonemeId: string) {
-        if (gameIsFull) {
+        if (gameIsOver) {
             return;
         }
 
@@ -70,9 +101,10 @@ export function WordleBoard({ config }: WordleBoardProps) {
         setStatusMessage("");
     }
 
-    // Validates and records the guess - A guess must contain the same number of phonemes as the target word
+    // Validates and records each guess - A guess must contain the same number of phonemes as the target word
+        // handles game state e.g. if the game is over, if you have won, number of attempts etc  
     function handleSubmit() {
-        if (gameIsFull) {
+        if (gameIsOver) {
             return;
         }
 
@@ -87,6 +119,15 @@ export function WordleBoard({ config }: WordleBoardProps) {
 
         const completedAttemptNumber = submittedGuesses.length + 1;
 
+        const guessScore = scoreGuess(
+            currentGuess,
+            selectedWord.phonemeIds,
+        );
+
+        const isWinningGuess = guessScore.every(
+            (state) => state === "correct",
+        );
+
         setSubmittedGuesses((existingGuesses) => [
             ...existingGuesses,
             currentGuess,
@@ -94,12 +135,27 @@ export function WordleBoard({ config }: WordleBoardProps) {
 
         setCurrentGuess([]);
 
+        if (isWinningGuess) {
+            setStatusMessage(
+                `Correct! You identifed ${selectedWord.ipa} in ${completedAttemptNumber} 
+                ${completedAttemptNumber === 1 ? "attempt" : "attempts"}.`,
+            );
+
+            return;
+        }
+
         if (completedAttemptNumber >= maximumAttempts) {
-            setStatusMessage("All attempts have been recorded!");
+            setStatusMessage(
+                `You have no attempts left. 
+                The target was ${selectedWord.ipa} — ${selectedWord.english}.`,
+            );
+
+            return;
         }
-        else {
-            setStatusMessage(`Guess ${completedAttemptNumber} recorded.`)
-        }
+       
+        setStatusMessage(
+            `Guess ${completedAttemptNumber} scored. Try again.`,
+        )
     }
 
     return (
@@ -115,6 +171,10 @@ export function WordleBoard({ config }: WordleBoardProps) {
                 <p className="mt-2 text-sm text-slate-600">
                     {maximumAttempts} attempts · {phonemeCount} phonemes per guess
                 </p>
+
+                <p className="mt-2 text-xs text-slate-500">
+                    Green: correct position · Amber: present elsewhere · Grey: absent
+                </p>
             </div>
 
             <div
@@ -124,47 +184,67 @@ export function WordleBoard({ config }: WordleBoardProps) {
                 aria-colcount={phonemeCount}
                 className="mt-6 space-y-2"
             >
-                {boardRows.map((row, rowIndex) => ( // renders the rows 
-                    <div
-                        role="row"
-                        aria-rowindex={rowIndex + 1}
-                        key={`row-${rowIndex}`}
-                        className="grid justify-center gap-2"
-                        style={{
-                            gridTemplateColumns: `repeat(${phonemeCount}, 3.5rem)`,
-                        }}
-                    >
-                        {row.map((phonemeId, columnIndex) => { // renders cells & displays guesses 
-                            const phoneme = phonemeId
-                                ? getPhoneme(phonemeId)
-                                : undefined;
+                {boardRows.map((row, rowIndex) => { // renders the rows 
+                    const submittedGuess = submittedGuesses[rowIndex];
 
-                            const isCurrentRow = rowIndex === submittedGuesses.length && !gameIsFull;
+                    const rowScore = 
+                        submittedGuess === undefined
+                            ? undefined
+                            : scoreGuess(submittedGuess, selectedWord.phonemeIds)
+                    
+                    return (
+                        <div
+                            role="row"
+                            aria-rowindex={rowIndex + 1}
+                            key={`row-${rowIndex}`}
+                            className="grid justify-center gap-2"
+                            style={{
+                                gridTemplateColumns: `repeat(${phonemeCount}, 3.5rem)`,
+                            }}
+                        >
+                            {row.map((phonemeId, columnIndex) => { // renders cells & displays guesses 
+                                const phoneme = phonemeId
+                                    ? getPhoneme(phonemeId)
+                                    : undefined;
 
-                            return (
-                                <span
-                                    role="gridcell"
-                                    aria-colindex={columnIndex + 1}
-                                    aria-label={
-                                        phoneme
-                                            ? `Attempt ${rowIndex + 1}, position ${columnIndex + 1}, ${phoneme.spokenName} sound`
-                                            : `Attempt ${rowIndex + 1}, position ${columnIndex + 1}, empty`
-                                    }
-                                    key={`cell-${rowIndex}-${columnIndex}`}
-                                    className={`flex size-14 items-center justify-center rounded-lg border-2 text-lg font-bold ${phoneme
+                                const guessState = rowScore?.[columnIndex];
+
+                                const isCurrentRow = 
+                                    rowIndex === submittedGuesses.length && !gameIsOver;
+                                
+                                const cellStyles = guessState
+                                    ? GUESS_STATE_STYLES[guessState]
+                                    : phoneme
                                         ? "border-blue-600 bg-blue-50 text-blue-950"
                                         : isCurrentRow
                                             ? "border-blue-300 bg-white text-slate-900"
-                                            : "border-slate-300 bg-white text-slate-900"
-                                        }`}
-                                >
-                                    {phoneme ? `/${phoneme.ipaSymbol}/` : null}
-                                </span>
-                            );
-                        })}
-                    </div>
-                ))}
+                                            : "border-slate-300 bg-white text-slate-900";
+                                
+                                const resultDescription = guessState
+                                    ? `, ${GUESS_STATE_LABELS[guessState]}`
+                                    : "";
+                                
+                                return (
+                                    <span
+                                        role="gridcell"
+                                        aria-colindex={columnIndex + 1}
+                                        aria-label={
+                                            phoneme
+                                                ? `Attempt ${rowIndex + 1}, position ${columnIndex + 1}, ${phoneme.spokenName} sound${resultDescription}`
+                                                : `Attempt ${rowIndex + 1}, position ${columnIndex + 1}, empty`
+                                        }
+                                        key={`cell-${rowIndex}-${columnIndex}`}
+                                        className={`flex size-14 items-center justify-center rounded-lg border-2 text-lg font-bold ${cellStyles}`}
+                                    >
+                                        {phoneme ? `/${phoneme.ipaSymbol}/` : null}
+                                    </span>                                    
+                                );
+                            })}
+                        </div>
+                    );
+                })}
             </div>
+            
             <div
                 role="group"
                 aria-label="Phoneme keyboard"
@@ -175,7 +255,7 @@ export function WordleBoard({ config }: WordleBoardProps) {
                         type="button"
                         key={phoneme.id}
                         onClick={() => handlePhonemeInput(phoneme.id)}
-                        disabled={gameIsFull || currentGuess.length >= phonemeCount}
+                        disabled={gameIsOver || currentGuess.length >= phonemeCount}
                         title={
                             config.hintsEnabled
                                 ? `${phoneme.grapheme} as in ${phoneme.exampleWord}`
@@ -199,7 +279,7 @@ export function WordleBoard({ config }: WordleBoardProps) {
                 <button
                     type="button"
                     onClick={handleDelete}
-                    disabled={currentGuess.length === 0 || gameIsFull}
+                    disabled={currentGuess.length === 0 || gameIsOver}
                     className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Delete
@@ -208,7 +288,7 @@ export function WordleBoard({ config }: WordleBoardProps) {
                 <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={gameIsFull}
+                    disabled={gameIsOver}
                     className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Submit guess
