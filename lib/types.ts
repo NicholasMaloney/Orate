@@ -35,3 +35,9 @@ export interface WordleConfig {
     readonly difficulty: Difficulty;
     readonly hintsEnabled: boolean;
 }
+
+// Describes how a guessed phoneme relates to the target word. 
+    // correct = right phoneme, right pos
+    // present = right phoneme, different pos
+    // absent = either not contained in the word or the guessed phoneme has no remaining match
+export type GuessState = "correct" | "present" | "absent";

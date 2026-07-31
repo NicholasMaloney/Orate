@@ -10,18 +10,18 @@ export default function HomePage() {
   return (
     <main 
       id="main-content"
-      className="flex-1 bg-slate-50 text-slate-950"
+      className="flex-1 bg-slate-50 text-slate-950 dark:bg-gray-800 dark:text-white"
       >
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
+      <section className="mx-auto max-w-6xl px-6 py-16 ">
+        <p className="text-sm font-semibold uppercase tracking-wider text-blue-700  dark:bg-gray-800 dark:text-white">
           Phoneme Activities for teachers
         </p>
 
-        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl  dark:bg-gray-800 dark:text-white">
           Create focused Phoneme learning activities with Orate.
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600  dark:bg-gray-800 dark:text-white">
           Orate creates playable phoneme Wordle and Word Search activities. 
           Each activity downloads as a standalone file that works offline.
         </p>
