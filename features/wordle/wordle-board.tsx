@@ -33,9 +33,8 @@ export function WordleBoard({ config }: WordleBoardProps) {
 
     const [currentGuess, setCurrentGuess] = useState<string[]>([]);
     const [submittedGuesses, setSubmittedGuesses] = useState<string[][]>([]);
-    const [statusMessage, setStatusMessage] = useState(
-        `Choose ${phonemeCount} phonemes to create a guess.`
-    );
+    const initialStatusMessage = `Choose ${phonemeCount} phonemes to create a guess.`
+    const [statusMessage, setStatusMessage] = useState( initialStatusMessage, );
 
     const latestGuess = submittedGuesses.at(-1);
 
@@ -106,6 +105,13 @@ export function WordleBoard({ config }: WordleBoardProps) {
         setStatusMessage("");
     }
 
+    // Restarts the game 
+    function handleRestart() {
+        setCurrentGuess([]);
+        setSubmittedGuesses([]);
+        setStatusMessage(initialStatusMessage);
+    }
+
     // Validates and records each guess - A guess must contain the same number of phonemes as the target word
         // handles game state e.g. if the game is over, if you have won, number of attempts etc  
     function handleSubmit() {
@@ -162,6 +168,7 @@ export function WordleBoard({ config }: WordleBoardProps) {
             `Guess ${completedAttemptNumber} scored. Try again.`,
         )
     }
+
 
     return (
         <section
@@ -292,7 +299,19 @@ export function WordleBoard({ config }: WordleBoardProps) {
                 })}
             </div>
 
-            <div className="mt-4 flex justify-center gap-3">
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
+                <button
+                    type="button"
+                    onClick={handleRestart}
+                    disabled={
+                        currentGuess.length === 0 &&
+                        submittedGuesses.length === 0
+                    }
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                    Restart
+                </button>              
+                
                 <button
                     type="button"
                     onClick={handleDelete}
