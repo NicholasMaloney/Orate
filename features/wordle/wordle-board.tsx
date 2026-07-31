@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
 import { getWordleWord } from "@/lib/phonemes";
 import { getPhoneme, PHONEMES } from "@/lib/phoneme-definitions";
-import { scoreGuess } from "@/lib/wordle-scoring";
+import { getPhonemeGuessStates, scoreGuess } from "@/lib/wordle-scoring";
 import type { GuessState, WordleConfig } from "@/lib/types";
 
 // accepts the Wordle config and builds a game board based on it 
@@ -55,6 +55,11 @@ export function WordleBoard({ config }: WordleBoardProps) {
         submittedGuesses.length >= maximumAttempts;
     
     const gameIsOver = hasWon || hasUsedAllAttempts;
+
+    const phonemeGuessStates = getPhonemeGuessStates(
+        submittedGuesses,
+        selectedWord.phonemeIds,
+    );
 
     // This creates the game board and renders the guesses that have been entered 
     const boardRows = Array.from(
@@ -250,29 +255,41 @@ export function WordleBoard({ config }: WordleBoardProps) {
                 aria-label="Phoneme keyboard"
                 className="mt-6 flex flex-wrap justify-center gap-2"
             >
-                {PHONEMES.map((phoneme) => (
-                    <button
-                        type="button"
-                        key={phoneme.id}
-                        onClick={() => handlePhonemeInput(phoneme.id)}
-                        disabled={gameIsOver || currentGuess.length >= phonemeCount}
-                        title={
-                            config.hintsEnabled
-                                ? `${phoneme.grapheme} as in ${phoneme.exampleWord}`
-                                : undefined
-                        }
-                        aria-label={`Add ${phoneme.spokenName} sound`}
-                        className="flex min-w-14 flex-col items-center rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-900 hover:border-blue-500 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        <span>/{phoneme.ipaSymbol}/</span>
+                {PHONEMES.map((phoneme) => {
+                    const phonemeGuessState = phonemeGuessStates[phoneme.id];
 
-                        {config.hintsEnabled ? (
-                            <span className="text-xs font-normal text-slate-600">
-                                {phoneme.grapheme}
-                            </span>
-                        ) : null}
-                    </button>
-                ))}
+                    const phonemeGuessStyles = phonemeGuessState
+                        ? GUESS_STATE_STYLES[phonemeGuessState]
+                        : "border-slate-300 bg-white text-slate-900 hover:border-blue-500 hover:bg-blue-50";
+
+                    const resultDescription = phonemeGuessState
+                        ? GUESS_STATE_LABELS[phonemeGuessState]
+                        : "not yet guessed";
+
+                    return (
+                        <button
+                            type="button"
+                            key={phoneme.id}
+                            onClick={() => handlePhonemeInput(phoneme.id)}
+                            disabled={gameIsOver || currentGuess.length >= phonemeCount}
+                            title={
+                                config.hintsEnabled
+                                    ? `${phoneme.grapheme} as in ${phoneme.exampleWord}`
+                                    : undefined
+                            }
+                            aria-label={`Add ${phoneme.spokenName} sound, ${resultDescription}`}
+                            className={`flex min-w-14 flex-col items-center rounded-lg border px-3 py-2 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-70 ${phonemeGuessStyles}`}
+                        >
+                            <span>/{phoneme.ipaSymbol}/</span>
+
+                            {config.hintsEnabled ? (
+                                <span className="text-xs font-normal opacity-80">
+                                    {phoneme.grapheme}
+                                </span>
+                            ) : null}
+                        </button>
+                    );
+                })}
             </div>
 
             <div className="mt-4 flex justify-center gap-3">
