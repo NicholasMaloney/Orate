@@ -236,9 +236,8 @@ function documentShell({
   <a class="skip-link" href="#activity">Skip to activity</a>
 
   <main class="app" id="activity">
-    <p class="brand">Orate</p>
+    <p class="brand"></p>
     ${body}
-    <p class="footer-note">Standalone classroom activity · Works offline</p>
   </main>
 
   <script>
@@ -280,17 +279,23 @@ const WORDLE_STYLES = `
     font-size: 0.7rem;
     line-height: 1;
   }
-
+ 
   .tile[data-state="correct"] {
-    border-color: var(--correct);
+    border-color: #166534;
+    background: #15803d;
+    color: #ffffff;
   }
 
   .tile[data-state="present"] {
-    border-color: var(--present);
+    border-color: #b45309;
+    background: #fbbf24;
+    color: #422006;
   }
 
   .tile[data-state="absent"] {
-    border-color: var(--absent);
+    border-color: #475569;
+    background: #64748b;
+    color: #ffffff;
   }
 
   .legend {
@@ -411,10 +416,6 @@ export function buildStandaloneWordleHtml(config: WordleConfig): string {
           and × means not in the word.
         </p>
       </header>
-      
-        <h2 id="wordle-preview-heading" className="text-2xl font-semibold pl-8">
-            Current Selected Word: ${selectedWord.english}
-        </h2>
 
       <div class="game">
         <div class="status-row">
