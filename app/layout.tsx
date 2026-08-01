@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { cookies } from "next/headers";
 import { PreferenceProvider } from "@/components/preference-provider";
-import {
-    PREFERENCE_COOKIE_NAMES,
-    preferencesFromCookies,
-} from "@/lib/preferences";
+import { PREFERENCE_COOKIE_NAMES, preferencesFromCookies,} from "@/lib/preferences";
+import { SITE_DESCRIPTION, SITE_NAME, } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,11 +21,13 @@ const geistMono = Geist_Mono({
 // The home page defaults to Orate.
 
 export const metadata: Metadata = {
-  title: {
-    default: "Orate",
-    template: "%s | Orate"
-  },
-  description: "A teacher-facing builder for playable phoneme Wordle and Word Search activities.",
+    title: {
+        default:
+            `${SITE_NAME} | Phoneme Activity Builder`,
+        template: `%s | ${SITE_NAME}`,
+    },
+    description: SITE_DESCRIPTION,
+    applicationName: SITE_NAME,
 };
 
 /**
@@ -89,6 +90,8 @@ export default async function RootLayout({
                     <SiteHeader />
 
                     {children}
+
+                    <SiteFooter />
                 </PreferenceProvider>
             </body>
         </html>
