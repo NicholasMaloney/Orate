@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Tailwind's dark: utilities should respond to the saved data attribute rather
+ * than only following the operating system colour preference.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Light is the default when no valid theme cookie exists.
+ */
+:root,
+html[data-theme="light"] {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --surface: #ffffff;
+    --surface-muted: #f1f5f9;
+    --border: #cbd5e1;
+    --muted-text: #475569;
+}
+
+/*
+ * These values replace the light palette when the root layout renders or the
+ * preference provider applies data-theme="dark".
+ */
+html[data-theme="dark"] {
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --surface: #1e293b;
+    --surface-muted: #334155;
+    --border: #475569;
+    --muted-text: #cbd5e1;
+}
+
+/*
+ * Density variables are defined now and will be used by shared page and panel
+ * styles during the later styling pass.
+ */
+html[data-density="comfortable"] {
+    --page-spacing: 4rem;
+    --panel-spacing: 1.5rem;
+    --control-spacing: 1rem;
+}
+
+html[data-density="compact"] {
+    --page-spacing: 2.5rem;
+    --panel-spacing: 1rem;
+    --control-spacing: 0.75rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+    min-height: 100%;
+    background: var(--background);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    min-height: 100%;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
 }
