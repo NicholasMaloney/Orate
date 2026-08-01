@@ -37,7 +37,7 @@ export default function HomePage() {
           </h2>
 
           <div className="mt-6 grid gap-(--control-spacing) md:grid-cols-2">
-            <article className="flex flex-col rounded-2xl border border-(--border) bg-(--surface)] p-(--panel-spacing) shadow-sm">
+            <article className="flex flex-col rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm">
               <h3 className="text-xl font-semibold">
                 Wordle
               </h3>
