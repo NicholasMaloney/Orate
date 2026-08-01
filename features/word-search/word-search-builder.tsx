@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { DIFFICULTY_DETAILS, DIFFICULTY_ORDER } from "@/lib/difficulty";
-import { getPhoneme } from "@/lib/phoneme-definitions";
-import { WORD_SEARCH_WORDS } from "@/lib/phonemes";
 import type { Difficulty, WordSearchConfig } from "@/lib/types";
 import { generateWordSearch } from "@/lib/word-search";
+import { WordSearchGame } from "@/features/word-search/word-search-board";
 
 // Describes how each Word Seach difficulty affects the puzzle 
 // The generator contains the actual rules this just displays / explains the rules to the teacher and/or speach path
@@ -147,89 +146,11 @@ export function WordSearchBuilder() {
                 </div>
             </aside>
 
-            <section
-                className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-                aria-labelledby="word-search-preview-heading"
-            >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
-                            Learner preview
-                        </p>
-
-                        <h2
-                            id="word-search-preview-heading"
-                            className="mt-1 text-2xl font-semibold"
-                        >
-                            Find the phoneme words
-                        </h2>
-                    </div>
-
-                    <p className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-                        {puzzle.grid.length} × {puzzle.grid.length}
-                    </p>
-                </div>
-
-                <div
-                    role="grid"
-                    aria-label={`${puzzle.grid.length} by ${puzzle.grid.length} phoneme Word Search`}
-                    className="mx-auto mt-6 grid max-w-2xl gap-1"
-                    style={{
-                        gridTemplateColumns: `repeat(${puzzle.grid.length}, minmax(0, 1fr))`,
-                    }}
-                >
-                    {puzzle.grid.map((row, rowIndex) =>
-                        row.map((phonemeId, columnIndex) => {
-                            const phoneme = getPhoneme(phonemeId);
-
-                            return (
-                                <div
-                                    role="gridcell"
-                                    key={`${rowIndex}-${columnIndex}`}
-                                    aria-label={`${phoneme.spokenName}, row ${rowIndex + 1}, column ${columnIndex + 1}`}
-                                    title={`${phoneme.grapheme} as in ${phoneme.exampleWord}`}
-                                    className="flex aspect-square min-w-0 items-center justify-center rounded-md border border-slate-300 bg-slate-50 text-slate-900"
-                                >
-                                    <span className="text-[0.6rem] font-semibold sm:text-xs">
-                                        /{phoneme.ipaSymbol}/
-                                    </span>
-                                </div>
-                            );
-                        }),
-                    )}
-                </div>
-
-                <section
-                    className="mt-8 border-t border-slate-200 pt-6"
-                    aria-labelledby="word-bank-heading"
-                >
-                    <h3
-                        id="word-bank-heading"
-                        className="text-lg font-semibold"
-                    >
-                        Words to find
-                    </h3>
-
-                    <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {WORD_SEARCH_WORDS.map((word) => (
-                            <li
-                                key={word.id}
-                                className="rounded-lg bg-slate-50 px-4 py-3"
-                            >
-                                <strong className="block text-blue-700">
-                                    {word.ipa}
-                                </strong>
-
-                                {hintsEnabled && (
-                                    <span className="mt-1 block text-sm text-slate-600">
-                                        {word.english}
-                                    </span>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            </section>
+            <WordSearchGame
+                key={`${config.difficulty}-${config.seed}`}
+                puzzle={puzzle}
+                hintsEnabled={config.hintsEnabled}
+            />
         </div>
     );
 }
