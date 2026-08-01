@@ -29,6 +29,22 @@ export interface CompletePhonemeWord extends PhonemeWord {
 // Difficulty values that will be accepted by Wordle and Word search 
 export type Difficulty = "easy" | "standard" | "challenging"
 
+// Colour palettes supported by the teacher interface. Not the activities 
+    // union type prevents values such as "blue", "automatic", or a misspelled theme name 
+    // from being used by TypeScript code.
+export type Theme = "light" | "dark";
+
+//Controls how much spacing the teacher interface uses.
+
+export type LayoutDensity =
+    "comfortable" | "compact";
+
+//Groups all preferences that should persist between visits.
+export interface PreferenceState {
+    readonly theme: Theme;
+    readonly density: LayoutDensity;
+}
+
 // Settings / config for teachers when creating a Wordle activity - will be used later for the game export function 
 export interface WordleConfig {
     readonly wordId: string;
