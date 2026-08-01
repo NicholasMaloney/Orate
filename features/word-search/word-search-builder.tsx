@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { DIFFICULTY_DETAILS, DIFFICULTY_ORDER } from "@/lib/difficulty";
 import type { Difficulty, WordSearchConfig } from "@/lib/types";
-import { generateWordSearch } from "@/lib/word-search";
-import { WordSearchGame } from "@/features/word-search/word-search-board";
+import { ActivityPreview } from "@/components/activity-preview";
+import { downloadHtmlFile } from "@/lib/download";
+import { buildStandaloneWordSearchHtml } from "@/lib/standalone";
 
 // Describes how each Word Seach difficulty affects the puzzle 
 // The generator contains the actual rules this just displays / explains the rules to the teacher and/or speach path
@@ -35,8 +36,11 @@ export function WordSearchBuilder() {
         hintsEnabled,
     };
 
-    // Puzzle is derived from the config, doesnt need its own useState cause it can be recalced from the diff and seed 
-    const puzzle = generateWordSearch(config);
+    // This is for the standalone HTML generator / downloader 
+    const [downloadStatus, setDownloadStatus] = useState("");
+
+    // Preview and download both use this exact HTML string.
+    const standaloneHtml = buildStandaloneWordSearchHtml(config);
 
     /**  This is a React 'functional update' 
         * essensially this handles an edge case: where multiple updates are queued e.g. a user clicks regen multiple times quickly 
@@ -45,6 +49,18 @@ export function WordSearchBuilder() {
     */
     function regeneratePuzzle() {
         setSeed((currentSeed) => currentSeed + 1);
+        setDownloadStatus("");
+    }
+
+    function handleDownload() {
+        const filename =
+            `orate-word-search-${config.difficulty}-${config.seed}.html`;
+
+        downloadHtmlFile(filename, standaloneHtml);
+
+        setDownloadStatus(
+            `Downloaded ${filename}. Open it in a browser to test the learner activity.`,
+        );
     }
 
     return (
@@ -144,12 +160,37 @@ export function WordSearchBuilder() {
                         Regenerate puzzle
                     </button>
                 </div>
-            </aside>
 
-            <WordSearchGame
-                key={`${config.difficulty}-${config.seed}`}
-                puzzle={puzzle}
-                hintsEnabled={config.hintsEnabled}
+                <div className="mt-8 border-t border-slate-200 pt-6">
+                    <h3 className="font-semibold text-slate-900">
+                        Download learner activity
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-600">
+                        Generate one playable HTML file using the current puzzle settings.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleDownload}
+                        className="mt-4 w-full rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                    >
+                        Download HTML
+                    </button>
+
+                    <p
+                        className="mt-3 min-h-6 text-sm text-slate-600"
+                        aria-live="polite"
+                    >
+                        {downloadStatus}
+                    </p>
+                </div>
+            </aside>
+            
+            <ActivityPreview
+                html={standaloneHtml}
+                title={`Playable ${config.difficulty} phoneme Word Search preview`}
+                height={1000}
             />
         </div>
     );
