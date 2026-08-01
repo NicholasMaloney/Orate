@@ -13,9 +13,9 @@ export function SiteHeader() {
                 </Link>
 
                 <nav
-                    className="flex items-center gap-6" 
+                    className="flex items-center gap-6"
                     aria-label="Primary navigation"
-                    >
+                >
                     <Link
                         href="/#activities"
                         className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
@@ -28,6 +28,13 @@ export function SiteHeader() {
                         className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
                     >
                         Wordle
+                    </Link>
+
+                    <Link
+                        href="/word-search"
+                        className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                    >
+                        Word Search
                     </Link>
 
                 </nav>
