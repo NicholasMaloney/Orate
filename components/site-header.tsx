@@ -3,7 +3,7 @@ import Link from "next/link";
 // Shared header displayed above every route, Theme colours come from CSS variables, while density controls the padding and distance between navigation links.
 export function SiteHeader() {
     const navigationLinkClasses =
-        "rounded-md font-medium text-[var(--muted-text)] hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
+        "rounded-md font-medium text-(--muted-text) hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
 
     return (
         <header className="border-b border-(--border) bg-(--surface) text-foreground">
@@ -24,7 +24,7 @@ export function SiteHeader() {
                         href="/#activities"
                         className={navigationLinkClasses}
                     >
-                        Activities
+                        Home
                     </Link>
 
                     <Link
@@ -39,6 +39,13 @@ export function SiteHeader() {
                         className={navigationLinkClasses}
                     >
                         Word Search
+                    </Link>
+
+                    <Link 
+                        href="/about" 
+                        className={navigationLinkClasses}
+                    >
+                        About
                     </Link>
 
                     <Link
