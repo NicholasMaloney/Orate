@@ -64,12 +64,12 @@ export function WordSearchBuilder() {
     }
 
     return (
-        <div className="mt-12 grid gap-8 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <div className="mt-12 grid gap-(--panel-spacing) lg:grid-cols-[20rem_minmax(0,1fr)]">
             <aside
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-foreground shadow-sm"
                 aria-labelledby="word-search-controls-heading"
             >
-                <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
+                <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
                     Teacher controls
                 </p>
 
@@ -81,35 +81,43 @@ export function WordSearchBuilder() {
                 </h2>
 
                 <fieldset className="mt-6">
-                    <legend className="font-semibold text-slate-800">
+                    <legend className="font-semibold text-foreground">
                         Difficulty
                     </legend>
 
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-(--muted-text)">
                         Difficulty changes the grid size and allowed directions.
                     </p>
 
-                    <div className="mt-3 space-y-3">
+                    <div className="mt-3 space-y-(--control-spacing)">
                         {DIFFICULTY_ORDER.map((option) => (
                             <label
                                 key={option}
-                                className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 hover:border-blue-400"
+                                className="flex cursor-pointer items-start gap-3 rounded-xl border border-(--border) bg-(--surface) p-3 hover:border-blue-400 hover:bg-(--surface-muted)"
                             >
                                 <input
                                     type="radio"
                                     name="word-search-difficulty"
                                     value={option}
-                                    checked={difficulty === option}
-                                    onChange={() => setDifficulty(option)}
-                                    className="mt-1"
+                                    checked={
+                                        difficulty === option
+                                    }
+                                    onChange={() =>
+                                        setDifficulty(option)
+                                    }
+                                    className="mt-1 h-4 w-4 shrink-0 accent-blue-700"
                                 />
 
                                 <span>
-                                    <strong className="block text-slate-900">
-                                        {DIFFICULTY_DETAILS[option].label}
+                                    <strong className="block text-foreground">
+                                        {
+                                            DIFFICULTY_DETAILS[
+                                                option
+                                            ].label
+                                        }
                                     </strong>
 
-                                    <span className="mt-1 block text-sm text-slate-600">
+                                    <span className="mt-1 block text-sm text-(--muted-text)">
                                         {
                                             WORD_SEARCH_DIFFICULTY_DESCRIPTIONS[
                                             option
@@ -122,13 +130,13 @@ export function WordSearchBuilder() {
                     </div>
                 </fieldset>
 
-                <label className="mt-6 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 p-4">
+               <label className="mt-6 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-(--border) bg-(--surface) p-4 hover:border-blue-400 hover:bg-(--surface-muted)">
                     <span>
-                        <strong className="block text-slate-900">
+                        <strong className="block text-foreground">
                             Show English hints
                         </strong>
 
-                        <span className="mt-1 block text-sm text-slate-600">
+                        <span className="mt-1 block text-sm text-(--muted-text)">
                             Display the English word beneath each IPA target.
                         </span>
                     </span>
@@ -139,16 +147,16 @@ export function WordSearchBuilder() {
                         onChange={(changeEvent) =>
                             setHintsEnabled(changeEvent.target.checked)
                         }
-                        className="mt-1"
+                        className="mt-1 h-5 w-5 shrink-0 accent-blue-700"
                     />
                 </label>
 
-                <div className="mt-6 rounded-xl bg-slate-50 p-4">
-                    <p className="text-sm text-slate-600">
+                <div className="mt-6 rounded-xl border border-(--border) bg-(--surface-muted) p-4">
+                    <p className="text-sm text-(--muted-text)">
                         Puzzle seed
                     </p>
 
-                    <p className="mt-1 font-mono text-lg font-semibold text-slate-900">
+                    <p className="mt-1 font-mono text-lg font-semibold text-foreground">
                         {seed}
                     </p>
 
@@ -161,12 +169,12 @@ export function WordSearchBuilder() {
                     </button>
                 </div>
 
-                <div className="mt-8 border-t border-slate-200 pt-6">
-                    <h3 className="font-semibold text-slate-900">
+                <div className="mt-8 border-t border-(--border) pt-6">
+                    <h3 className="font-semibold text-foreground">
                         Download learner activity
                     </h3>
 
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-(--muted-text)">
                         Generate one playable HTML file using the current puzzle settings.
                     </p>
 
@@ -179,14 +187,14 @@ export function WordSearchBuilder() {
                     </button>
 
                     <p
-                        className="mt-3 min-h-6 text-sm text-slate-600"
+                        className="mt-3 min-h-6 text-sm text-(--muted-text)"
                         aria-live="polite"
                     >
                         {downloadStatus}
                     </p>
                 </div>
             </aside>
-            
+
             <ActivityPreview
                 html={standaloneHtml}
                 title={`Playable ${config.difficulty} phoneme Word Search preview`}
