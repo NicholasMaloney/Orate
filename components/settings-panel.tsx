@@ -67,11 +67,10 @@ function preferenceButtonClasses(
     const unselectedClasses =
         "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--foreground)] hover:border-blue-500";
 
-    return `${sharedClasses} ${
-        isSelected
+    return `${sharedClasses} ${isSelected
             ? selectedClasses
             : unselectedClasses
-    }`;
+        }`;
 }
 
 export function SettingsPanel() {
@@ -136,11 +135,10 @@ export function SettingsPanel() {
                                     </strong>
 
                                     <span
-                                        className={`mt-1 block text-sm ${
-                                            isSelected
+                                        className={`mt-1 block text-sm ${isSelected
                                                 ? "text-blue-100"
                                                 : "text-[var(--muted-text)]"
-                                        }`}
+                                            }`}
                                     >
                                         {
                                             option.description
@@ -207,11 +205,10 @@ export function SettingsPanel() {
                                         </strong>
 
                                         <span
-                                            className={`mt-1 block text-sm ${
-                                                isSelected
+                                            className={`mt-1 block text-sm ${isSelected
                                                     ? "text-blue-100"
                                                     : "text-[var(--muted-text)]"
-                                            }`}
+                                                }`}
                                         >
                                             {
                                                 option.description

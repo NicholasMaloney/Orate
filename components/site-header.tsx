@@ -1,49 +1,52 @@
 import Link from "next/link";
 
+// Shared header displayed above every route, Theme colours come from CSS variables, while density controls the padding and distance between navigation links.
 export function SiteHeader() {
+    const navigationLinkClasses =
+        "rounded-md font-medium text-[var(--muted-text)] hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
+
     return (
-        <header className="border-b border-slate-200 bg-white">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <header className="border-b border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-[var(--control-spacing)]">
                 <Link
                     href="/"
-                    className="rounded-md text-xl font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                    className="shrink-0 rounded-md text-xl font-bold text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:focus-visible:outline-blue-300"
                     aria-label="Orate home"
                 >
                     Orate
                 </Link>
 
                 <nav
-                    className="flex items-center gap-6"
+                    className="flex flex-wrap items-center justify-end gap-x-[var(--control-spacing)] gap-y-2"
                     aria-label="Primary navigation"
                 >
                     <Link
                         href="/#activities"
-                        className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                        className={navigationLinkClasses}
                     >
                         Activities
                     </Link>
 
                     <Link
                         href="/wordle"
-                        className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                        className={navigationLinkClasses}
                     >
                         Wordle
                     </Link>
 
                     <Link
                         href="/word-search"
-                        className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                        className={navigationLinkClasses}
                     >
                         Word Search
                     </Link>
 
                     <Link
                         href="/settings"
-                        className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                        className={navigationLinkClasses}
                     >
                         Settings
                     </Link>
-
                 </nav>
             </div>
         </header>
