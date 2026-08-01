@@ -6,18 +6,18 @@ export function SiteHeader() {
         "rounded-md font-medium text-[var(--muted-text)] hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
 
     return (
-        <header className="border-b border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-[var(--control-spacing)]">
+        <header className="border-b border-(--border) bg-(--surface) text-foreground">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-(--control-spacing)">
                 <Link
                     href="/"
-                    className="shrink-0 rounded-md text-xl font-bold text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:focus-visible:outline-blue-300"
+                    className="shrink-0 rounded-md text-xl font-bold text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:focus-visible:outline-blue-300"
                     aria-label="Orate home"
                 >
                     Orate
                 </Link>
 
                 <nav
-                    className="flex flex-wrap items-center justify-end gap-x-[var(--control-spacing)] gap-y-2"
+                    className="flex flex-wrap items-center justify-end gap-x-(--control-spacing) gap-y-2"
                     aria-label="Primary navigation"
                 >
                     <Link

@@ -83,10 +83,10 @@ export function SettingsPanel() {
     } = usePreferences();
 
     return (
-        <div className="mt-10 space-y-[var(--control-spacing)]">
+        <div className="mt-10 space-y-(--control-spacing)">
             <div className="grid gap-6 md:grid-cols-2">
                 <section
-                    className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] shadow-sm"
+                    className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                     aria-labelledby="theme-heading"
                 >
                     <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
@@ -100,7 +100,7 @@ export function SettingsPanel() {
                         Colour theme
                     </h2>
 
-                    <p className="mt-2 text-sm text-[var(--muted-text)]">
+                    <p className="mt-2 text-sm text-(--muted-text)">
                         Choose the colour palette that is easiest to read.
                     </p>
 
@@ -137,7 +137,7 @@ export function SettingsPanel() {
                                     <span
                                         className={`mt-1 block text-sm ${isSelected
                                                 ? "text-blue-100"
-                                                : "text-[var(--muted-text)]"
+                                                : "text-(--muted-text)"
                                             }`}
                                     >
                                         {
@@ -151,7 +151,7 @@ export function SettingsPanel() {
                 </section>
 
                 <section
-                    className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] shadow-sm"
+                    className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                     aria-labelledby="density-heading"
                 >
                     <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
@@ -165,7 +165,7 @@ export function SettingsPanel() {
                         Interface spacing
                     </h2>
 
-                    <p className="mt-2 text-sm text-[var(--muted-text)]">
+                    <p className="mt-2 text-sm text-(--muted-text)">
                         Choose how much space appears between controls.
                     </p>
 
@@ -207,7 +207,7 @@ export function SettingsPanel() {
                                         <span
                                             className={`mt-1 block text-sm ${isSelected
                                                     ? "text-blue-100"
-                                                    : "text-[var(--muted-text)]"
+                                                    : "text-(--muted-text)"
                                                 }`}
                                         >
                                             {
@@ -223,7 +223,7 @@ export function SettingsPanel() {
             </div>
 
             <section
-                className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] shadow-sm"
+                className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                 aria-labelledby="current-preferences-heading"
             >
                 <div className="flex flex-wrap items-center justify-between gap-4">
@@ -239,7 +239,7 @@ export function SettingsPanel() {
                             Current interface
                         </h2>
 
-                        <p className="mt-2 text-[var(--muted-text)]">
+                        <p className="mt-2 text-(--muted-text)">
                             <span className="capitalize">
                                 {preferences.theme}
                             </span>{" "}
@@ -256,14 +256,14 @@ export function SettingsPanel() {
                     <button
                         type="button"
                         onClick={resetPreferences}
-                        className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 font-semibold text-[var(--foreground)] hover:border-blue-500 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:text-blue-300"
+                        className="rounded-lg border border-(--border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground hover:border-blue-500 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:text-blue-300"
                     >
                         Reset defaults
                     </button>
                 </div>
 
                 <p
-                    className="mt-4 min-h-6 text-sm text-[var(--muted-text)]"
+                    className="mt-4 min-h-6 text-sm text-(--muted-text)"
                     aria-live="polite"
                 >
                     {status}

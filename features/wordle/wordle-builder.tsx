@@ -47,9 +47,9 @@ export function WordleBuilder() {
 
     return (
         <>
-            <div className="mt-12 grid gap-[var(--panel-spacing)] lg:grid-cols-[22rem_minmax(0,1fr)]">
+            <div className="mt-12 grid gap-(--panel-spacing) lg:grid-cols-[22rem_minmax(0,1fr)]">
                 <section
-                    className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] text-[var(--foreground)] shadow-sm"
+                    className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-foreground shadow-sm"
                     aria-labelledby="wordle-controls-heading"
                 >
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
@@ -63,12 +63,12 @@ export function WordleBuilder() {
                     <div className="mt-4">
                         <label
                             htmlFor="target-word"
-                            className="block font-semibold text-[var(--foreground)]"
+                            className="block font-semibold text-foreground"
                         >
                             Target Phoneme Word
                         </label>
 
-                        <p id="target-word-help" className="mt-1 text-sm text-[var(--muted-text)]">
+                        <p id="target-word-help" className="mt-1 text-sm text-(--muted-text)">
                             Select the word the student will attempt to identify
                         </p>
 
@@ -78,7 +78,7 @@ export function WordleBuilder() {
                             value={wordId}
                             onChange={(changeEvent) => setWordId(changeEvent.target.value)}
                             aria-describedby="target-word-help"
-                            className="mt-3 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)] focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                            className="mt-3 w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-foreground focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
                         >
                             {WORDLE_WORDS.map((word) => (// Each Wordle word becomes one selectable option
                                 <option key={word.id} value={word.id}>
@@ -87,8 +87,8 @@ export function WordleBuilder() {
                             ))}
                         </select>
                     </div>
-                    <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-text)]">
+                    <div className="mt-6 rounded-xl border border-(--border) bg-(--surface-muted) p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-(--muted-text)">
                             Selected activity
                         </p>
 
@@ -117,14 +117,14 @@ export function WordleBuilder() {
                                                 ? `${phoneme.grapheme} as in ${phoneme.exampleWord}`
                                                 : undefined
                                         }
-                                        className="flex min-w-14 flex-col items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2"
+                                        className="flex min-w-14 flex-col items-center rounded-lg border border-(--border) bg-(--surface) px-3 py-2"
                                     >
-                                        <strong className="text-[var(--foreground)]">
+                                        <strong className="text-foreground">
                                             /{phoneme.ipaSymbol}/
                                         </strong>
 
                                         {config.hintsEnabled ? (
-                                            <span className="text-xs text-[var(--muted-text)]">
+                                            <span className="text-xs text-(--muted-text)">
                                                 {phoneme.grapheme}
                                             </span>
                                         ) : null}
@@ -139,22 +139,22 @@ export function WordleBuilder() {
                         className="mt-8"
                         aria-describedby="difficulty-help"
                     >
-                        <legend className="font-semibold text-[var(--foreground)]">
+                        <legend className="font-semibold text-foreground">
                             Difficulty
                         </legend>
 
-                        <p id="difficulty-help" className="mt-1 text-sm text-[var(--muted-text)]">
+                        <p id="difficulty-help" className="mt-1 text-sm text-(--muted-text)">
                             Difficulty Controls how many attempts the student receives.
                         </p>
 
-                        <div className="mt-4 space-y-[var(--control-spacing)]">
+                        <div className="mt-4 space-y-(--control-spacing)">
                             {DIFFICULTY_ORDER.map((option) => {
                                 const details = DIFFICULTY_DETAILS[option];
 
                                 return (
                                     <label
                                         key={option}
-                                        className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 hover:border-blue-400 hover:bg-[var(--surface-muted)]"
+                                        className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-(--border) bg-(--surface) p-4 hover:border-blue-400 hover:bg-(--surface-muted)"
                                     >
                                         <input
                                             type="radio"
@@ -165,11 +165,11 @@ export function WordleBuilder() {
                                             className="mt-1 h-4 w-4 shrink-0 accent-blue-700"
                                         />
                                         <span>
-                                            <strong className="block text-[var(--foreground)]">
+                                            <strong className="block text-foreground">
                                                 {details.label}
                                             </strong>
 
-                                            <span className="mt-1 block text-sm text-[var(--muted-text)]">
+                                            <span className="mt-1 block text-sm text-(--muted-text)">
                                                 {details.attempts} attempts - {details.description}
                                             </span>
                                         </span>
@@ -180,13 +180,13 @@ export function WordleBuilder() {
                     </fieldset>
 
                     {/** Adds the option to enable phoneme hints and show english grapheme associated with each IPA sound.  */}
-                    <label className="mt-8 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 hover:border-blue-400 hover:bg-[var(--surface-muted)]">
+                    <label className="mt-8 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-(--border) bg-(--surface) p-4 hover:border-blue-400 hover:bg-(--surface-muted)">
                         <span>
-                            <strong className="block text-[var(--foreground)]">
+                            <strong className="block text-foreground">
                                 Show phoneme hints
                             </strong>
 
-                            <span className="mt-1 block text-sm text-[var(--muted-text)]">
+                            <span className="mt-1 block text-sm text-(--muted-text)">
                                 Show the English grapheme associated with each IPA sound.
                             </span>
                         </span>
@@ -203,12 +203,12 @@ export function WordleBuilder() {
                     </label>
 
                     {/** Download button */ }
-                    <div className="mt-8 border-t border-[var(--border)] pt-6">
-                        <h3 className="font-semibold text-[var(--foreground)]">
+                    <div className="mt-8 border-t border-(--border) pt-6">
+                        <h3 className="font-semibold text-foreground">
                             Download learner activity
                         </h3>
 
-                        <p className="mt-1 text-sm text-[var(--muted-text)]">
+                        <p className="mt-1 text-sm text-(--muted-text)">
                             Generate one self-contained HTML file using the current settings.
                         </p>
 
@@ -220,7 +220,7 @@ export function WordleBuilder() {
                         </button>
 
                         <p
-                            className="mt-3 min-h-6 text-sm text-[var(--muted-text)]"
+                            className="mt-3 min-h-6 text-sm text-(--muted-text)"
                             aria-live="polite"
                         >
                             {downloadStatus}

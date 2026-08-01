@@ -11,9 +11,9 @@ export default function WordSearchPage() {
     return (
         <main
             id="main-content"
-            className="flex-1 bg-[var(--background)] text-[var(--foreground)]"
+            className="flex-1 bg-background text-foreground"
         >
-            <section className="mx-auto max-w-6xl px-6 py-[var(--page-spacing)]">
+            <section className="mx-auto max-w-6xl px-6 py-page-spacing">
                 <PageIntro
                     eyebrow="Activity builder | Word Search"
                     title="Build a phoneme Word Search activity."

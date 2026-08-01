@@ -25,7 +25,7 @@ export function PageIntro({
                 {title}
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted-text)]">
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-(--muted-text)">
                 {description}
             </p>
         </header>

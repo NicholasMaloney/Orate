@@ -12,9 +12,9 @@ export default function SettingsPage() {
     return (
         <main
             id="main-content"
-            className="flex-1 bg-[var(--background)] text-[var(--foreground)]"
+            className="flex-1 bg-(--background)] text-[var(--foreground)"
         >
-            <section className="mx-auto max-w-4xl px-6 py-[var(--page-spacing)]">
+            <section className="mx-auto max-w-4xl px-6 py-(--page-spacing)">
                 <PageIntro
                     eyebrow="Saved preferences"
                     title="Make Orate comfortable for you."

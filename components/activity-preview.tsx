@@ -13,7 +13,7 @@ export function ActivityPreview({
 }: ActivityPreviewProps) {
     return (
         <section
-            className="flex min-h-0 flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] shadow-sm"
+            className="flex min-h-0 flex-col rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
             aria-labelledby="activity-preview-heading"
         >
             <div>
@@ -23,17 +23,17 @@ export function ActivityPreview({
 
                 <h2
                     id="activity-preview-heading"
-                    className="mt-1 text-2xl font-semibold text-[var(--foreground)]"
+                    className="mt-1 text-2xl font-semibold text-foreground"
                 >
                     Live activity preview
                 </h2>
 
-                <p className="mt-2 text-sm text-[var(--muted-text)]">
+                <p className="mt-2 text-sm text-(--muted-text)">
                     This is the exact activity included in the downloaded file.
                 </p>
             </div>
 
-            <div className="mt-[var(--control-spacing)] flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-muted)]">
+            <div className="mt-(--control-spacing) flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-(--border) bg-(--surface-muted)">
                 <iframe
                     srcDoc={html}
                     title={title}
