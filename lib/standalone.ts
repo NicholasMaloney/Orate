@@ -6,30 +6,31 @@
  */
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
 import { PHONEMES } from "@/lib/phoneme-definitions";
-import { getWordleWord } from "@/lib/phonemes";
-import type { WordleConfig } from "@/lib/types";
+import { getWordleWord, WORD_SEARCH_WORDS } from "@/lib/phonemes";
+import type { WordleConfig, WordSearchConfig } from "@/lib/types";
+import { generateWordSearch } from "@/lib/word-search";
 
 function serializeForScript(value: unknown): string {
-    return JSON.stringify(value)
-        .replaceAll("<", "\\u003c")
-        .replaceAll(">", "\\u003e")
-        .replaceAll("&", "\\u0026");
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026");
 }
 
 function documentShell({
-    title,
-    theme,
-    body,
-    script,
-    gameStyles,
+  title,
+  theme,
+  body,
+  script,
+  gameStyles,
 }: {
-    title: string;
-    theme: "light" | "dark";
-    body: string;
-    script: string;
-    gameStyles: string;
+  title: string;
+  theme: "light" | "dark";
+  body: string;
+  script: string;
+  gameStyles: string;
 }): string {
-    return `<!doctype html>
+  return `<!doctype html>
 <html lang="en" data-theme="${theme}">
 <head>
   <meta charset="utf-8">
@@ -388,23 +389,23 @@ const WORDLE_STYLES = `
 `;
 
 export function buildStandaloneWordleHtml(config: WordleConfig): string {
-    const selectedWord = getWordleWord(config.wordId);
-    const maximumAttempts =
-        DIFFICULTY_DETAILS[config.difficulty].attempts;
-    const phonemeCount = selectedWord.phonemeIds.length;
+  const selectedWord = getWordleWord(config.wordId);
+  const maximumAttempts =
+    DIFFICULTY_DETAILS[config.difficulty].attempts;
+  const phonemeCount = selectedWord.phonemeIds.length;
 
-    const data = {
-        selectedWord,
-        maximumAttempts,
-        phonemeCount,
-        hintsEnabled: config.hintsEnabled,
-        phonemes: PHONEMES,
-    };
+  const data = {
+    selectedWord,
+    maximumAttempts,
+    phonemeCount,
+    hintsEnabled: config.hintsEnabled,
+    phonemes: PHONEMES,
+  };
 
-    const initialStatusMessage =
-        `Choose ${phonemeCount} phonemes to create a guess.`;
+  const initialStatusMessage =
+    `Choose ${phonemeCount} phonemes to create a guess.`;
 
-    const body = `
+  const body = `
     <section class="panel" aria-labelledby="activity-title">
       <header class="panel-header">
         <p class="eyebrow">Phoneme Wordle</p>
@@ -456,12 +457,12 @@ export function buildStandaloneWordleHtml(config: WordleConfig): string {
         ></div>
 
         ${config.hintsEnabled
-            ? `<p class="hint-note">
+      ? `<p class="hint-note">
                 Hover over or focus a phoneme key for a spelling hint.
                 Press Escape to dismiss a hint.
                </p>`
-            : ""
-        }
+      : ""
+    }
 
         <div
           class="sr-only"
@@ -471,7 +472,7 @@ export function buildStandaloneWordleHtml(config: WordleConfig): string {
       </div>
     </section>`;
 
-    const script = `
+  const script = `
     const data = ${serializeForScript(data)};
     const phonemeById = new Map(
       data.phonemes.map((phoneme) => [phoneme.id, phoneme])
@@ -976,12 +977,561 @@ export function buildStandaloneWordleHtml(config: WordleConfig): string {
     renderKeyboard();
   `;
 
+  return documentShell({
+    title:
+      `Orate Phoneme Wordle — ${selectedWord.english}`,
+    theme: "light",
+    body,
+    script,
+    gameStyles: WORDLE_STYLES,
+  });
+}
+
+// Word Search 
+const WORD_SEARCH_STYLES = `
+  .search-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .grid-wrap {
+    min-width: 0;
+    overflow-x: auto;
+    padding: 0.2rem;
+  }
+
+  .search-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(var(--grid-size), minmax(2.2rem, 1fr));
+    gap: 0.25rem;
+    width: min(100%, 38rem);
+    min-width: max-content;
+    margin: 0 auto;
+  }
+
+  .search-cell {
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-size: clamp(0.7rem, 2vw, 1rem);
+    font-weight: 800;
+  }
+
+  .search-cell:hover {
+    border-color: var(--accent);
+    background: var(--soft);
+  }
+
+  .search-cell[data-selected="true"] {
+    border: 2px solid var(--accent);
+    background: var(--soft);
+  }
+
+  .search-cell[data-found="true"] {
+    border-color: var(--correct);
+    background: var(--correct);
+    color: var(--surface);
+  }
+
+  .word-bank {
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1rem;
+    background: var(--soft);
+  }
+
+  .word-bank h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .word-bank p {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .word-list {
+    display: grid;
+    gap: 0.6rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .word-item {
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    padding: 0.65rem;
+    background: var(--surface);
+  }
+
+  .word-item strong,
+  .word-item span {
+    display: block;
+  }
+
+  .word-item .english {
+    margin-top: 0.15rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .word-item .found-label {
+    margin-top: 0.25rem;
+    color: var(--correct);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .word-item[data-found="true"] strong {
+    text-decoration: line-through;
+  }
+
+  @media (max-width: 52rem) {
+    .search-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .word-list {
+      grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    }
+  }
+`;
+
+export function buildStandaloneWordSearchHtml(
+    config: WordSearchConfig,
+): string {
+    const puzzle = generateWordSearch(config);
+    const gridSize = puzzle.grid.length;
+
+    /**
+     * These are the only data values needed by the browser activity.
+     * serializeForScript converts this object into script-safe JSON.
+     */
+    const data = {
+        puzzle,
+        hintsEnabled: config.hintsEnabled,
+        phonemes: PHONEMES,
+        words: WORD_SEARCH_WORDS,
+    };
+
+    const body = `
+    <section class="panel" aria-labelledby="activity-title">
+      <header class="panel-header">
+        <p class="eyebrow">Phoneme Word Search</p>
+        <h1 id="activity-title">Find the hidden phoneme words</h1>
+
+        <p class="lede">
+          Select the first phoneme of a word, then select its final
+          phoneme. Words may appear in either direction.
+        </p>
+      </header>
+
+      <div class="game">
+        <div class="status-row">
+          <p class="status" id="progress">
+            0 of ${WORD_SEARCH_WORDS.length} words found
+          </p>
+
+          <button class="restart" id="restart" type="button">
+            Restart
+          </button>
+        </div>
+
+        <p class="message" id="status-message">
+          Choose the first phoneme of a word.
+        </p>
+
+        <div class="search-layout">
+          <div class="grid-wrap">
+            <div
+              class="search-grid"
+              id="search-grid"
+              role="group"
+              aria-label="${gridSize} by ${gridSize} interactive phoneme Word Search"
+              style="--grid-size: ${gridSize}"
+            ></div>
+          </div>
+
+          <aside class="word-bank" aria-labelledby="word-bank-title">
+            <h2 id="word-bank-title">Words to find</h2>
+            <p>Select one endpoint, then the other.</p>
+            <ul class="word-list" id="word-list"></ul>
+          </aside>
+        </div>
+
+        <div
+          class="sr-only"
+          id="announcement"
+          aria-live="polite"
+        ></div>
+      </div>
+    </section>`;
+
+    const script = `
+    const data = ${serializeForScript(data)};
+
+    const phonemeById = new Map(
+      data.phonemes.map(
+        (phoneme) => [phoneme.id, phoneme]
+      )
+    );
+
+    const wordById = new Map(
+      data.words.map(
+        (word) => [word.id, word]
+      )
+    );
+
+    const foundWordIds = new Set();
+    let selectionStart = null;
+
+    const gridElement =
+      document.getElementById("search-grid");
+
+    const wordListElement =
+      document.getElementById("word-list");
+
+    const progressElement =
+      document.getElementById("progress");
+
+    const statusMessageElement =
+      document.getElementById("status-message");
+
+    const announcement =
+      document.getElementById("announcement");
+
+    function coordinatesAreEqual(first, second) {
+      return (
+        first.row === second.row &&
+        first.column === second.column
+      );
+    }
+
+    function placementMatchesEndpoints(
+      placement,
+      start,
+      end
+    ) {
+      const firstCoordinate =
+        placement.coordinates[0];
+
+      const lastCoordinate =
+        placement.coordinates[
+          placement.coordinates.length - 1
+        ];
+
+      return (
+        (
+          coordinatesAreEqual(firstCoordinate, start) &&
+          coordinatesAreEqual(lastCoordinate, end)
+        ) ||
+        (
+          coordinatesAreEqual(firstCoordinate, end) &&
+          coordinatesAreEqual(lastCoordinate, start)
+        )
+      );
+    }
+
+    function isFoundCoordinate(row, column) {
+      return data.puzzle.placements.some(
+        (placement) =>
+          foundWordIds.has(placement.wordId) &&
+          placement.coordinates.some(
+            (coordinate) =>
+              coordinate.row === row &&
+              coordinate.column === column
+          )
+      );
+    }
+
+    function setStatusMessage(text, tone) {
+      statusMessageElement.textContent = text;
+      statusMessageElement.dataset.tone =
+        tone || "";
+
+      announcement.textContent = text;
+    }
+
+    function renderGrid() {
+      gridElement.replaceChildren();
+
+      data.puzzle.grid.forEach(
+        (row, rowIndex) => {
+          row.forEach(
+            (phonemeId, columnIndex) => {
+              const phoneme =
+                phonemeById.get(phonemeId);
+
+              if (!phoneme) {
+                throw new Error(
+                  "Unknown phoneme: " + phonemeId
+                );
+              }
+
+              const coordinate = {
+                row: rowIndex,
+                column: columnIndex,
+              };
+
+              const isSelected =
+                selectionStart !== null &&
+                coordinatesAreEqual(
+                  selectionStart,
+                  coordinate
+                );
+
+              const isFound =
+                isFoundCoordinate(
+                  rowIndex,
+                  columnIndex
+                );
+
+              const button =
+                document.createElement("button");
+
+              button.type = "button";
+              button.className = "search-cell";
+              button.textContent =
+                "/" + phoneme.ipaSymbol + "/";
+
+              button.dataset.selected =
+                String(isSelected);
+
+              button.dataset.found =
+                String(isFound);
+
+              button.setAttribute(
+                "aria-pressed",
+                String(isSelected)
+              );
+
+              button.setAttribute(
+                "aria-label",
+                phoneme.spokenName +
+                  ", row " +
+                  (rowIndex + 1) +
+                  ", column " +
+                  (columnIndex + 1) +
+                  (
+                    isFound
+                      ? ", part of a found word"
+                      : ""
+                  )
+              );
+
+              button.title =
+                phoneme.grapheme +
+                " as in " +
+                phoneme.exampleWord;
+
+              button.addEventListener(
+                "click",
+                () => selectCell(coordinate)
+              );
+
+              gridElement.appendChild(button);
+            }
+          );
+        }
+      );
+    }
+
+    function renderWordList() {
+      wordListElement.replaceChildren();
+
+      data.words.forEach((word) => {
+        const isFound =
+          foundWordIds.has(word.id);
+
+        const item =
+          document.createElement("li");
+
+        item.className = "word-item";
+        item.dataset.found = String(isFound);
+
+        item.setAttribute(
+          "aria-label",
+          word.ipa +
+            (
+              isFound
+                ? ", found"
+                : ", not found"
+            )
+        );
+
+        const ipa =
+          document.createElement("strong");
+
+        ipa.textContent = word.ipa;
+        item.appendChild(ipa);
+
+        if (data.hintsEnabled) {
+          const english =
+            document.createElement("span");
+
+          english.className = "english";
+          english.textContent = word.english;
+          item.appendChild(english);
+        }
+
+        if (isFound) {
+          const foundLabel =
+            document.createElement("span");
+
+          foundLabel.className =
+            "found-label";
+
+          foundLabel.textContent = "Found";
+          item.appendChild(foundLabel);
+        }
+
+        wordListElement.appendChild(item);
+      });
+
+      progressElement.textContent =
+        foundWordIds.size +
+        " of " +
+        data.words.length +
+        " words found";
+    }
+
+    function selectCell(coordinate) {
+      if (selectionStart === null) {
+        selectionStart = coordinate;
+
+        setStatusMessage(
+          "Start selected. Now choose the final phoneme."
+        );
+
+        renderGrid();
+        return;
+      }
+
+      if (
+        coordinatesAreEqual(
+          selectionStart,
+          coordinate
+        )
+      ) {
+        selectionStart = null;
+
+        setStatusMessage(
+          "Selection cleared. Choose a new starting phoneme."
+        );
+
+        renderGrid();
+        return;
+      }
+
+      const matchingPlacement =
+        data.puzzle.placements.find(
+          (placement) =>
+            placementMatchesEndpoints(
+              placement,
+              selectionStart,
+              coordinate
+            )
+        );
+
+      selectionStart = null;
+
+      if (!matchingPlacement) {
+        setStatusMessage(
+          "That line is not one of the target words. Try again.",
+          "warning"
+        );
+      } else if (
+        foundWordIds.has(
+          matchingPlacement.wordId
+        )
+      ) {
+        setStatusMessage(
+          "You have already found that word. Choose another.",
+          "warning"
+        );
+      } else {
+        foundWordIds.add(
+          matchingPlacement.wordId
+        );
+
+        const matchedWord =
+          wordById.get(
+            matchingPlacement.wordId
+          );
+
+        if (
+          foundWordIds.size ===
+          data.words.length
+        ) {
+          setStatusMessage(
+            "Well done! You found every phoneme word.",
+            "success"
+          );
+        } else if (matchedWord) {
+          setStatusMessage(
+            "Found " +
+              matchedWord.ipa +
+              (
+                data.hintsEnabled
+                  ? " - " + matchedWord.english
+                  : ""
+              ) +
+              ".",
+            "success"
+          );
+        } else {
+          setStatusMessage(
+            "Word found!",
+            "success"
+          );
+        }
+      }
+
+      renderGrid();
+      renderWordList();
+    }
+
+    function restartGame() {
+      foundWordIds.clear();
+      selectionStart = null;
+
+      setStatusMessage(
+        "Choose the first phoneme of a word."
+      );
+
+      renderGrid();
+      renderWordList();
+    }
+
+    document
+      .getElementById("restart")
+      .addEventListener(
+        "click",
+        restartGame
+      );
+
+    renderGrid();
+    renderWordList();
+  `;
+
     return documentShell({
         title:
-            `Orate Phoneme Wordle — ${selectedWord.english}`,
+            `Orate Phoneme Word Search - ${config.difficulty}`,
         theme: "light",
         body,
         script,
-        gameStyles: WORDLE_STYLES,
+        gameStyles: WORD_SEARCH_STYLES,
     });
 }
