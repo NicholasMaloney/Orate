@@ -41,3 +41,37 @@ export interface WordleConfig {
     // present = right phoneme, different pos
     // absent = either not contained in the word or the guessed phoneme has no remaining match
 export type GuessState = "correct" | "present" | "absent";
+
+/** ~~~~~~ This is where the Word-Search feature starts ~~~~~~ */
+
+// Settings selected by the teacher when creating a Word Search.
+export interface WordSearchConfig {
+    readonly difficulty: Difficulty;
+    readonly seed: number;
+    readonly hintsEnabled: boolean;
+}
+
+// Identifies one cell within the Word Search grid.
+export interface GridCoordinate {
+    readonly row: number;
+    readonly column: number;
+}
+
+// Records where one hidden word was placed.
+// These coordinates also act as the puzzle's answer key.
+export interface PlacedWord {
+    readonly wordId: string;
+    readonly coordinates: readonly GridCoordinate[];
+}
+
+// The completed puzzle returned by the generator.
+export interface WordSearchPuzzle {
+    // Each string is a phoneme ID, rather than the displayed IPA symbol.
+    readonly grid: readonly (readonly string[])[];
+
+    // Records the hidden location of each word.
+    readonly placements: readonly PlacedWord[];
+
+    // Records which seed produced this puzzle.
+    readonly seed: number;
+}

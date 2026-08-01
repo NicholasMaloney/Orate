@@ -497,3 +497,8 @@ export function getWordleWord(wordId: string): CompletePhonemeWord {
 
     return word;
 }
+
+// Word Seach feature starts here: 
+// Word Search uses the same fixed collection of fully recorded phoneme words.
+export const WORD_SEARCH_WORDS: readonly CompletePhonemeWord[] =
+    WORDLE_WORDS;
