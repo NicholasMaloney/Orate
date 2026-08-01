@@ -37,6 +37,13 @@ export function SiteHeader() {
                         Word Search
                     </Link>
 
+                    <Link
+                        href="/settings"
+                        className="rounded-md font-medium text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700"
+                    >
+                        Settings
+                    </Link>
+
                 </nav>
             </div>
         </header>
