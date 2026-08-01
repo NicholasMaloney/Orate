@@ -7,9 +7,9 @@ export default function HomePage() {
   return (
     <main
       id="main-content"
-      className="flex-1 bg-[var(--background)] text-[var(--foreground)]"
+      className="flex-1 bg-background text-foreground"
     >
-      <section className="mx-auto max-w-6xl px-6 py-[var(--page-spacing)]">
+      <section className="mx-auto max-w-6xl px-6 py-(--page-spacing)">
         <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
           Phoneme activities for teachers
         </p>
@@ -18,7 +18,7 @@ export default function HomePage() {
           Create focused phoneme learning activities with Orate.
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted-text)]">
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-(--muted-text)">
           Orate creates playable phoneme Wordle and Word Search
           activities. Each activity downloads as a standalone file
           that works offline.
@@ -36,13 +36,13 @@ export default function HomePage() {
             Activity builders
           </h2>
 
-          <div className="mt-6 grid gap-[var(--control-spacing)] md:grid-cols-2">
-            <article className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] shadow-sm">
+          <div className="mt-6 grid gap-(--control-spacing) md:grid-cols-2">
+            <article className="flex flex-col rounded-2xl border border-(--border) bg-(--surface)] p-(--panel-spacing) shadow-sm">
               <h3 className="text-xl font-semibold">
                 Wordle
               </h3>
 
-              <p className="mt-3 flex-1 leading-7 text-[var(--muted-text)]">
+              <p className="mt-3 flex-1 leading-7 text-(--muted-text)">
                 Create a supported word-guessing activity
                 focused on phonemes and spelling patterns.
               </p>
@@ -55,12 +55,12 @@ export default function HomePage() {
               </Link>
             </article>
 
-            <article className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-[var(--panel-spacing)] shadow-sm">
+            <article className="flex flex-col rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm">
               <h3 className="text-xl font-semibold">
                 Word Search
               </h3>
 
-              <p className="mt-3 flex-1 leading-7 text-[var(--muted-text)]">
+              <p className="mt-3 flex-1 leading-7 text-(--muted-text)">
                 Generate a seeded phoneme puzzle from a fixed
                 classroom word set and download it for offline
                 use.
