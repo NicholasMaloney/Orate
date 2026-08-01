@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata } from "next"
+import { PageIntro } from "@/components/page-intro";
 import { WordSearchBuilder } from "@/features/word-search/word-search-builder";
 
 export const metadata: Metadata = {
@@ -10,21 +11,14 @@ export default function WordSearchPage() {
     return (
         <main
             id="main-content"
-            className="flex-1 bg-slate-50 text-slate-950"
+            className="flex-1 bg-[var(--background)] text-[var(--foreground)]"
         >
-            <section className="mx-auto max-w-6xl px-6 py-16">
-                <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
-                    Activity builder | Word Search
-                </p>
-
-                <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-                    Build a phoneme Word Search activity.
-                </h1>
-
-                <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-                    Configure the puzzle difficulty, regenerate the phoneme grid,
-                    and download the finished activity as a standalone HTML file.
-                </p>
+            <section className="mx-auto max-w-6xl px-6 py-[var(--page-spacing)]">
+                <PageIntro
+                    eyebrow="Activity builder | Word Search"
+                    title="Build a phoneme Word Search activity."
+                    description="Configure the puzzle difficulty, regenerate the phoneme grid, and download the finished activity as a standalone HTML file."
+                />
 
                 <WordSearchBuilder />
             </section>
