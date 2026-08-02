@@ -29,13 +29,13 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
         value: "light",
         label: "Light",
         description:
-            "Use a bright background with dark text.",
+            "Use the soft Blue Mist palette with dark text.",
     },
     {
         value: "dark",
         label: "Dark",
         description:
-            "Use a dark background with light text.",
+            "Use the Deep Navy palette with light text.",
     },
 ];
 
@@ -59,18 +59,19 @@ function preferenceButtonClasses(
     isSelected: boolean,
 ): string {
     const sharedClasses =
-        "w-full rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+        "w-full rounded-xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)";
 
     const selectedClasses =
-        "border-blue-700 bg-blue-700 text-white";
+        "border-(--action) bg-(--action) text-(--action-text) hover:border-(--action-hover) hover:bg-(--action-hover)";
 
     const unselectedClasses =
-        "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--foreground)] hover:border-blue-500";
+        "border-(--control-border) bg-(--surface-muted) text-foreground hover:border-(--accent) hover:bg-(--accent-soft)";
 
-    return `${sharedClasses} ${isSelected
+    return `${sharedClasses} ${
+        isSelected
             ? selectedClasses
             : unselectedClasses
-        }`;
+    }`;
 }
 
 export function SettingsPanel() {
@@ -89,7 +90,7 @@ export function SettingsPanel() {
                     className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                     aria-labelledby="theme-heading"
                 >
-                    <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                    <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                         Appearance
                     </p>
 
@@ -136,7 +137,7 @@ export function SettingsPanel() {
 
                                     <span
                                         className={`mt-1 block text-sm ${isSelected
-                                                ? "text-blue-100"
+                                                ? "text-(--action-text) opacity-90"
                                                 : "text-(--muted-text)"
                                             }`}
                                     >
@@ -154,7 +155,7 @@ export function SettingsPanel() {
                     className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                     aria-labelledby="density-heading"
                 >
-                    <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                    <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                         Layout
                     </p>
 
@@ -206,7 +207,7 @@ export function SettingsPanel() {
 
                                         <span
                                             className={`mt-1 block text-sm ${isSelected
-                                                    ? "text-blue-100"
+                                                    ? "text-(--action-text) opacity-90"
                                                     : "text-(--muted-text)"
                                                 }`}
                                         >
@@ -228,7 +229,7 @@ export function SettingsPanel() {
             >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                        <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                             Saved preferences
                         </p>
 
@@ -256,7 +257,7 @@ export function SettingsPanel() {
                     <button
                         type="button"
                         onClick={resetPreferences}
-                        className="rounded-lg border border-(--border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground hover:border-blue-500 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:text-blue-300"
+                        className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     >
                         Reset defaults
                     </button>

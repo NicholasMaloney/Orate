@@ -93,7 +93,7 @@ export default function AboutPage() {
 
                                     <Link
                                         href="/wordle"
-                                        className="mt-5 inline-block rounded-md font-semibold text-blue-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:text-blue-300 dark:focus-visible:outline-blue-300"
+                                        className="mt-5 inline-block rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
                                     >
                                         Open Wordle builder
                                     </Link>
@@ -112,8 +112,7 @@ export default function AboutPage() {
 
                                     <Link
                                         href="/word-search"
-                                        className="mt-5 inline-block rounded-md font-semibold text-blue-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:text-blue-300 dark:focus-visible:outline-blue-300"
-                                    >
+                                        className="mt-5 inline-block rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"                                    >
                                         Open Word Search builder
                                     </Link>
                                 </article>
@@ -124,7 +123,7 @@ export default function AboutPage() {
                             className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                             aria-labelledby="instructional-video-heading"
                         >
-                            <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                            <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                                 Recording milestone
                             </p>
 

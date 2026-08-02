@@ -12,7 +12,7 @@ export default function SettingsPage() {
     return (
         <main
             id="main-content"
-            className="flex-1 bg-(--background)] text-[var(--foreground)"
+            className="flex-1 bg-background text-foreground"
         >
             <section className="mx-auto max-w-4xl px-6 py-(--page-spacing)">
                 <PageIntro

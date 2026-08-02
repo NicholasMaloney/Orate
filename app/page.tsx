@@ -10,7 +10,7 @@ export default function HomePage() {
       className="flex-1 bg-background text-foreground"
     >
       <section className="mx-auto max-w-6xl px-6 py-(--page-spacing)">
-        <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+        <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
           Phoneme activities for teachers
         </p>
 
@@ -49,7 +49,7 @@ export default function HomePage() {
 
               <Link
                 href="/wordle"
-                className="mt-6 w-fit rounded-md font-semibold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:text-blue-300 dark:hover:text-blue-100 dark:focus-visible:outline-blue-300"
+                className="mt-6 w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
               >
                 Open Wordle builder
               </Link>
@@ -68,7 +68,7 @@ export default function HomePage() {
 
               <Link
                 href="/word-search"
-                className="mt-6 w-fit rounded-md font-semibold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:text-blue-300 dark:hover:text-blue-100 dark:focus-visible:outline-blue-300"
+                className="mt-6 w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
               >
                 Open Word Search builder
               </Link>
