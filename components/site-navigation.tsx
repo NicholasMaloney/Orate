@@ -38,12 +38,11 @@ const COMPACT_LINKS = [
 ] as const;
 
 const desktopLinkClasses =
-    "rounded-md font-medium text-(--muted-text) hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
-
+    "rounded-md font-medium text-(--muted-text) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)";
 const menuLinkClasses =
-    "block rounded-lg px-4 py-3 font-medium text-(--muted-text) hover:bg-(--surface-muted) hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
+    "block rounded-lg px-4 py-3 font-medium text-(--muted-text) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)";
 
-export function SiteNavigation() {
+    export function SiteNavigation() {
     const [isMenuOpen, setIsMenuOpen] =
         useState(false);
 
@@ -100,8 +99,7 @@ export function SiteNavigation() {
                 }
                 aria-expanded={isMenuOpen}
                 aria-controls="compact-navigation"
-                className="inline-flex size-11 items-center justify-center rounded-lg border border-(--border) bg-(--surface-muted) text-foreground hover:border-blue-400 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300"
-            >
+                className="inline-flex size-11 items-center justify-center rounded-lg border border-(--control-border) bg-(--surface-muted) text-foreground hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) aria-expanded:border-(--accent) aria-expanded:bg-(--accent-soft) aria-expanded:text-(--accent)"            >
                 <span className="sr-only">
                     {isMenuOpen
                         ? "Close compact navigation"

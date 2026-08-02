@@ -17,7 +17,7 @@ export function ActivityPreview({
             aria-labelledby="activity-preview-heading"
         >
             <div>
-                <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                     Learner view
                 </p>
 
@@ -38,7 +38,7 @@ export function ActivityPreview({
                     srcDoc={html}
                     title={title}
                     sandbox="allow-scripts"
-                    className="block min-h-0 w-full flex-1 bg-white"
+                    className="block min-h-0 w-full flex-1 bg-background"
                     style={{
                         minHeight: `${height}px`,
                     }}

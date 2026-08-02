@@ -8,7 +8,7 @@ export function SiteHeader() {
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-(--control-spacing)">
                 <Link
                     href="/"
-                    className="shrink-0 rounded-md text-xl font-bold text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:focus-visible:outline-blue-300"
+                    className="shrink-0 rounded-md text-xl font-bold text-foreground hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"            
                     aria-label="Orate home"
                 >
                     Orate

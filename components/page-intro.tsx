@@ -17,7 +17,7 @@ export function PageIntro({
 }: PageIntroProps) {
     return (
         <header>
-            <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+            <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                 {eyebrow}
             </p>
 
