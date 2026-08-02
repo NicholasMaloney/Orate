@@ -1,10 +1,8 @@
 import Link from "next/link";
+import { SiteNavigation } from "./site-navigation";
 
-// Shared header displayed above every route, Theme colours come from CSS variables, while density controls the padding and distance between navigation links.
+// Shared header displayed above every route
 export function SiteHeader() {
-    const navigationLinkClasses =
-        "rounded-md font-medium text-(--muted-text) hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-700 dark:hover:text-blue-300 dark:focus-visible:outline-blue-300";
-
     return (
         <header className="border-b border-(--border) bg-(--surface) text-foreground">
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-(--control-spacing)">
@@ -15,46 +13,7 @@ export function SiteHeader() {
                 >
                     Orate
                 </Link>
-
-                <nav
-                    className="flex flex-wrap items-center justify-end gap-x-(--control-spacing) gap-y-2"
-                    aria-label="Primary navigation"
-                >
-                    <Link
-                        href="/#activities"
-                        className={navigationLinkClasses}
-                    >
-                        Home
-                    </Link>
-
-                    <Link
-                        href="/wordle"
-                        className={navigationLinkClasses}
-                    >
-                        Wordle
-                    </Link>
-
-                    <Link
-                        href="/word-search"
-                        className={navigationLinkClasses}
-                    >
-                        Word Search
-                    </Link>
-
-                    <Link 
-                        href="/about" 
-                        className={navigationLinkClasses}
-                    >
-                        About
-                    </Link>
-
-                    <Link
-                        href="/settings"
-                        className={navigationLinkClasses}
-                    >
-                        Settings
-                    </Link>
-                </nav>
+                <SiteNavigation />
             </div>
         </header>
     );
