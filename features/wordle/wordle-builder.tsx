@@ -52,7 +52,7 @@ export function WordleBuilder() {
                     className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-foreground shadow-sm"
                     aria-labelledby="wordle-controls-heading"
                 >
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                         Teacher Controls
                     </h3>
 
@@ -78,7 +78,7 @@ export function WordleBuilder() {
                             value={wordId}
                             onChange={(changeEvent) => setWordId(changeEvent.target.value)}
                             aria-describedby="target-word-help"
-                            className="mt-3 w-full rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-foreground focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                            className="mt-3 w-full rounded-lg border border-(--control-border) bg-(--surface) px-3 py-2 text-foreground transition-colors focus:border-(--accent) focus:outline-none focus:ring-2 focus:ring-(--focus-ring)"
                         >
                             {WORDLE_WORDS.map((word) => (// Each Wordle word becomes one selectable option
                                 <option key={word.id} value={word.id}>
@@ -93,11 +93,11 @@ export function WordleBuilder() {
                         </p>
 
                         <div className="mt-2 flex items-baseline gap-3">
-                            <strong className="text-2xl text-blue-700 dark:text-blue-300">
+                            <strong className="text-2xl text-(--accent)">
                                 {selectedWord.ipa}
                             </strong>
 
-                            <span className="text-slate-text-[var(--muted-text)]">
+                            <span className="text-(--muted-text)">
                                 {selectedWord.english}
                             </span>
                         </div>
@@ -154,7 +154,7 @@ export function WordleBuilder() {
                                 return (
                                     <label
                                         key={option}
-                                        className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-(--border) bg-(--surface) p-4 hover:border-blue-400 hover:bg-(--surface-muted)"
+                                        className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-(--control-border) bg-(--surface) p-4 transition-colors hover:border-(--accent) hover:bg-(--accent-soft)"
                                     >
                                         <input
                                             type="radio"
@@ -162,7 +162,7 @@ export function WordleBuilder() {
                                             value={option}
                                             checked={difficulty === option}
                                             onChange={() => setDifficulty(option)}
-                                            className="mt-1 h-4 w-4 shrink-0 accent-blue-700"
+                                            className="mt-1 h-4 w-4 shrink-0 accent-(--action) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                                         />
                                         <span>
                                             <strong className="block text-foreground">
@@ -180,7 +180,7 @@ export function WordleBuilder() {
                     </fieldset>
 
                     {/** Adds the option to enable phoneme hints and show english grapheme associated with each IPA sound.  */}
-                    <label className="mt-8 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-(--border) bg-(--surface) p-4 hover:border-blue-400 hover:bg-(--surface-muted)">
+                    <label className="mt-8 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-(--control-border) bg-(--surface) p-4 transition-colors hover:border-(--accent) hover:bg-(--accent-soft)">
                         <span>
                             <strong className="block text-foreground">
                                 Show phoneme hints
@@ -198,7 +198,7 @@ export function WordleBuilder() {
                             onChange={(changeEvent) =>
                                 setHintsEnabled(changeEvent.target.checked)
                             }
-                            className="mt-1 h-5 w-5 shrink-0 accent-blue-700"
+                            className="mt-1 h-5 w-5 shrink-0 accent-(--action) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                         />
                     </label>
 
@@ -215,7 +215,8 @@ export function WordleBuilder() {
                         <button
                             type="button"
                             onClick={handleDownload}
-                            className="mt-4 rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"                        >
+                            className="mt-4 rounded-lg bg-(--action) px-5 py-3 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                        >
                             Download HTML
                         </button>
 
