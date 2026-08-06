@@ -69,7 +69,7 @@ export function WordSearchBuilder() {
                 className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-foreground shadow-sm"
                 aria-labelledby="word-search-controls-heading"
             >
-                <p className="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                     Teacher controls
                 </p>
 
@@ -93,7 +93,7 @@ export function WordSearchBuilder() {
                         {DIFFICULTY_ORDER.map((option) => (
                             <label
                                 key={option}
-                                className="flex cursor-pointer items-start gap-3 rounded-xl border border-(--border) bg-(--surface) p-3 hover:border-blue-400 hover:bg-(--surface-muted)"
+                                className="flex cursor-pointer items-start gap-3 rounded-xl border border-(--control-border) bg-(--surface) p-3 transition-colors hover:border-(--accent) hover:bg-(--accent-soft)"
                             >
                                 <input
                                     type="radio"
@@ -105,7 +105,7 @@ export function WordSearchBuilder() {
                                     onChange={() =>
                                         setDifficulty(option)
                                     }
-                                    className="mt-1 h-4 w-4 shrink-0 accent-blue-700"
+                                    className="mt-1 h-4 w-4 shrink-0 accent-(--action) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                                 />
 
                                 <span>
@@ -130,7 +130,7 @@ export function WordSearchBuilder() {
                     </div>
                 </fieldset>
 
-               <label className="mt-6 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-(--border) bg-(--surface) p-4 hover:border-blue-400 hover:bg-(--surface-muted)">
+                <label className="mt-6 flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-(--control-border) bg-(--surface) p-4 transition-colors hover:border-(--accent) hover:bg-(--accent-soft)">
                     <span>
                         <strong className="block text-foreground">
                             Show English hints
@@ -147,7 +147,7 @@ export function WordSearchBuilder() {
                         onChange={(changeEvent) =>
                             setHintsEnabled(changeEvent.target.checked)
                         }
-                        className="mt-1 h-5 w-5 shrink-0 accent-blue-700"
+                        className="mt-1 h-5 w-5 shrink-0 accent-(--action) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     />
                 </label>
 
@@ -163,7 +163,7 @@ export function WordSearchBuilder() {
                     <button
                         type="button"
                         onClick={regeneratePuzzle}
-                        className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                        className="mt-4 w-full rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     >
                         Regenerate puzzle
                     </button>
@@ -181,7 +181,7 @@ export function WordSearchBuilder() {
                     <button
                         type="button"
                         onClick={handleDownload}
-                        className="mt-4 w-full rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                        className="mt-4 w-full rounded-lg bg-(--action) px-5 py-3 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     >
                         Download HTML
                     </button>
