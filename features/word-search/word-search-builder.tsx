@@ -6,6 +6,7 @@ import type { Difficulty, WordSearchConfig } from "@/lib/types";
 import { ActivityPreview } from "@/components/activity-preview";
 import { downloadHtmlFile } from "@/lib/download";
 import { buildStandaloneWordSearchHtml } from "@/lib/standalone";
+import { usePreferences } from "@/components/preference-provider";
 
 // Describes how each Word Seach difficulty affects the puzzle 
 // The generator contains the actual rules this just displays / explains the rules to the teacher and/or speach path
@@ -19,6 +20,8 @@ const WORD_SEARCH_DIFFICULTY_DESCRIPTIONS: Readonly<Record<Difficulty, string>
 
 // Contains the teacher controls and preview for the Word Search activity 
 export function WordSearchBuilder() {
+    // This is used for light/dark mode theme application
+    const { preferences } = usePreferences();
     // Difficulty choices
     const [difficulty, setDifficulty] =
         useState<Difficulty>("standard");
@@ -40,7 +43,7 @@ export function WordSearchBuilder() {
     const [downloadStatus, setDownloadStatus] = useState("");
 
     // Preview and download both use this exact HTML string.
-    const standaloneHtml = buildStandaloneWordSearchHtml(config);
+    const standaloneHtml = buildStandaloneWordSearchHtml(config, preferences.theme);
 
     /**  This is a React 'functional update' 
         * essensially this handles an edge case: where multiple updates are queued e.g. a user clicks regen multiple times quickly 

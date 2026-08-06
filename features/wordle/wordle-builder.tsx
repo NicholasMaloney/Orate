@@ -12,8 +12,11 @@ import type { Difficulty, WordleConfig } from "@/lib/types";
 import { downloadHtmlFile } from "@/lib/download";
 import { buildStandaloneWordleHtml } from "@/lib/standalone";
 import { ActivityPreview } from "@/components/activity-preview";
+import { usePreferences } from "@/components/preference-provider";
 
 export function WordleBuilder() {
+    
+    const { preferences } = usePreferences();
     const [
         wordId,     // Current state value
         setWordId   // Function that updates the state
@@ -32,7 +35,7 @@ export function WordleBuilder() {
     //const selectedDifficulty = DIFFICULTY_DETAILS[config.difficulty];
 
     const [downloadStatus, setDownloadStatus] = useState("");
-    const standaloneHtml = buildStandaloneWordleHtml(config);
+    const standaloneHtml = buildStandaloneWordleHtml(config, preferences.theme);
 
     // Download handler 
     function handleDownload() {

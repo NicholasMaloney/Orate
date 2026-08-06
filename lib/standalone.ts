@@ -7,7 +7,7 @@
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
 import { PHONEMES } from "@/lib/phoneme-definitions";
 import { getWordleWord, WORD_SEARCH_WORDS } from "@/lib/phonemes";
-import type { WordleConfig, WordSearchConfig } from "@/lib/types";
+import type { WordleConfig, WordSearchConfig, Theme } from "@/lib/types";
 import { generateWordSearch } from "@/lib/word-search";
 
 function serializeForScript(value: unknown): string {
@@ -25,7 +25,7 @@ function documentShell({
   gameStyles,
 }: {
   title: string;
-  theme: "light" | "dark";
+  theme: Theme;
   body: string;
   script: string;
   gameStyles: string;
@@ -39,28 +39,48 @@ function documentShell({
   <title>${title}</title>
   <style>
     :root {
-      --background: #f3f7f5;
-      --surface: #ffffff;
-      --soft: #e6f0ed;
-      --text: #17343b;
-      --muted: #536a70;
-      --border: #b9cec8;
-      --accent: #0b6b64;
-      --focus: #a94f00;
+      --background: #f3f7fb;
+      --surface: #fcfdff;
+      --soft: #e4edf6;
+
+      --text: #17233a;
+      --muted: #53657a;
+
+      --border: #c6d5e4;
+      --control-border: #8195aa;
+
+      --accent: #245d8a;
+
+      --action: #245d8a;
+      --action-hover: #1c496d;
+      --action-text: #ffffff;
+
+      --focus: #245d8a;
+
       --correct: #08734f;
       --present: #9a5b00;
       --absent: #65767b;
     }
 
     [data-theme="dark"] {
-      --background: #0d1c20;
-      --surface: #142a30;
-      --soft: #1c363d;
-      --text: #f0faf7;
-      --muted: #b8cbc6;
-      --border: #456269;
-      --accent: #72e3d1;
-      --focus: #ffc857;
+      --background: #111c2e;
+      --surface: #1b2a41;
+      --soft: #263a56;
+
+      --text: #f4f7fb;
+      --muted: #b9c7d8;
+
+      --border: #405873;
+      --control-border: #6b85a2;
+
+      --accent: #8cc4ea;
+
+      --action: #317aab;
+      --action-hover: #285f88;
+      --action-text: #ffffff;
+
+      --focus: #8cc4ea;
+
       --correct: #64d7b0;
       --present: #f0bd61;
       --absent: #a6b4b8;
@@ -168,13 +188,18 @@ function documentShell({
     }
 
     .restart {
-      border: 1px solid var(--border);
+      border: 1px solid var(--control-border);
       border-radius: 0.4rem;
       padding: 0.55rem 0.8rem;
       background: var(--surface);
       color: var(--text);
       cursor: pointer;
       font-weight: 700;
+    }
+
+    .restart:hover {
+      border-color: var(--accent);
+      background: var(--soft);
     }
 
     .message {
@@ -324,7 +349,7 @@ const WORDLE_STYLES = `
     min-width: 3.4rem;
     min-height: 3.3rem;
     place-items: center;
-    border: 1px solid var(--border);
+    border: 1px solid var(--control-border);
     border-radius: 0.4rem;
     padding: 0.3rem 0.5rem;
     background: var(--surface);
@@ -349,9 +374,15 @@ const WORDLE_STYLES = `
 
   .key.action {
     min-width: 5.5rem;
-    background: var(--accent);
-    color: var(--background);
+    border-color: var(--action);
+    background: var(--action);
+    color: var(--action-text);
     font-weight: 800;
+  }
+
+  .key.action:hover {
+    border-color: var(--action-hover);
+    background: var(--action-hover);
   }
 
   .key.secondary {
@@ -388,7 +419,7 @@ const WORDLE_STYLES = `
   }
 `;
 
-export function buildStandaloneWordleHtml(config: WordleConfig): string {
+export function buildStandaloneWordleHtml(config: WordleConfig, theme: Theme,): string {
   const selectedWord = getWordleWord(config.wordId);
   const maximumAttempts =
     DIFFICULTY_DETAILS[config.difficulty].attempts;
@@ -980,7 +1011,7 @@ export function buildStandaloneWordleHtml(config: WordleConfig): string {
   return documentShell({
     title:
       `Orate Phoneme Wordle — ${selectedWord.english}`,
-    theme: "light",
+    theme,
     body,
     script,
     gameStyles: WORDLE_STYLES,
@@ -1016,7 +1047,7 @@ const WORD_SEARCH_STYLES = `
     display: grid;
     aspect-ratio: 1;
     place-items: center;
-    border: 1px solid var(--border);
+    border: 1px solid var(--control-border);
     border-radius: 0.35rem;
     background: var(--surface);
     color: var(--text);
@@ -1111,6 +1142,7 @@ const WORD_SEARCH_STYLES = `
 
 export function buildStandaloneWordSearchHtml(
     config: WordSearchConfig,
+    theme: Theme,
 ): string {
     const puzzle = generateWordSearch(config);
     const gridSize = puzzle.grid.length;
@@ -1529,7 +1561,7 @@ export function buildStandaloneWordSearchHtml(
     return documentShell({
         title:
             `Orate Phoneme Word Search - ${config.difficulty}`,
-        theme: "light",
+        theme,
         body,
         script,
         gameStyles: WORD_SEARCH_STYLES,
