@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Orate
 
-## Getting Started
+Orate is a teacher-facing builder for phoneme Wordle and Word Search
+activities. It is intended for teachers and speech pathologists who want to
+configure an activity, test the learner experience, and download one playable
+HTML file for classroom use.
 
-First, run the development server:
+The downloaded activities are self-contained: their HTML, CSS, data, and plain
+JavaScript are embedded in a single file that can run offline in a normal web
+browser.
 
-```bash
+## Features
+
+- Configurable Phoneme Wordle target, difficulty, and spelling hints.
+- Seeded Word Search puzzles with difficulty-dependent grids and directions.
+- Exact learner preview before download.
+- Single-file offline HTML downloads.
+- Blue Mist light and Deep Navy dark themes carried into previews/downloads.
+- Comfortable and compact interface density preferences.
+- Cookie persistence with immediate visual updates.
+- Responsive direct navigation and an accessible compact hamburger menu.
+
+## Technology
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Tailwind CSS 4 and semantic CSS custom properties
+- Browser DOM, iframe, Blob, and download APIs
+
+The project is currently frontend-only. It has no accounts, database, or
+separate backend API. Next.js Server Actions are used only to validate and
+write preference cookies.
+
+## Getting started
+
+Prerequisites: Git, Node.js/npm compatible with Next.js 16, and a modern
+browser.
+
+```powershell
+git clone <repository-url>
+cd orate-v1
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open the URL printed by Next.js, normally
+[http://localhost:3000](http://localhost:3000). Another port may be selected if
+`3000` is already occupied.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+npm run dev
+npm run lint
+npm run build
+npm run start
+```
 
-## Learn More
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server with live updates. |
+| `npm run lint` | Run the Next.js/TypeScript ESLint configuration. |
+| `npm run build` | Compile and type-check a production build. |
+| `npm run start` | Serve an existing production build. |
 
-To learn more about Next.js, take a look at the following resources:
+## Routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Route | Purpose |
+| --- | --- |
+| `/` | Home and activity selection. |
+| `/wordle` | Configure, preview, and download Phoneme Wordle. |
+| `/word-search` | Configure, regenerate, preview, and download Word Search. |
+| `/about` | Project purpose, technical scope, and creator details. |
+| `/settings` | Persistent theme and density controls. |
