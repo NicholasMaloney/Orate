@@ -1,0 +1,61 @@
+WEBVTT
+
+00:00.911 --> 00:09.565
+Hi, my name is Nicholas Maloney and welcome to Aurate, a tool that helps teachers and speech pathologists create interactive phonon learning activities.
+
+00:10.169 --> 00:13.375
+currently choose between 2, Wordle or Word Search.
+
+00:13.455 --> 00:14.817
+Let's go check out Wordle.
+
+00:15.218 --> 00:21.788
+Here you can select from 5 different words, three different difficulties and enable or disable hints.
+
+00:22.189 --> 00:32.606
+Currently, this live preview also reflects the downloaded HTML document and provides colors that represent correct, almost correct, or incorrect answers.
+
+00:33.327 --> 00:41.740
+Downloading the HTML, we receive our standalone activity, which maintains all the coloring and functionality of the live preview,
+
+00:42.809 --> 00:46.976
+well as a restart button for the student or learner to redo the activity.
+
+00:48.178 --> 00:49.460
+Moving to the word search
+
+00:51.137 --> 00:51.618
+style.
+
+00:52.098 --> 00:56.425
+Three difficulty options, the ability to enable or disable hints,
+
+00:57.112 --> 01:12.417
+There is also a regenerate puzzle button which allows you to regenerate the puzzle, changing the locations of the given characters, but also denotes it with a seed so educators can regenerate the same puzzle in the future if it was a successful activity.
+
+01:13.379 --> 01:22.433
+Downloading this HTML file downloads the standalone activity and maintains all color and functionality, including a restart button.
+
+01:23.435 --> 01:24.597
+An important thing to note
+
+01:24.837 --> 01:25.157
+is
+
+01:25.327 --> 01:27.891
+Changing between light and dark mode changes
+
+01:28.211 --> 01:30.295
+the theme of the activity downloaded.
+
+01:30.535 --> 01:34.461
+For instance, if we change to light mode and redownload the Wordle activity,
+
+01:35.551 --> 01:43.564
+downloaded will be in light mode, of course, still maintaining the theme and functionality of the same activity in dark mode.
+
+01:44.787 --> 01:47.592
+And that concludes the demonstration for Auray.
+
+01:47.832 --> 01:48.313
+Thank you.

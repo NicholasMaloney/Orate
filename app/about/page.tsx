@@ -124,7 +124,7 @@ export default function AboutPage() {
                             aria-labelledby="instructional-video-heading"
                         >
                             <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
-                                Recording milestone
+                                Project demonstration
                             </p>
 
                             <h2
@@ -134,18 +134,44 @@ export default function AboutPage() {
                                 How to use Orate
                             </h2>
 
-                            <p className="mt-3 text-(--muted-text)">
-                                The final About page will include a short,
-                                captioned demonstration of the activity-building
-                                workflow.
+                            <p
+                                id="instructional-video-description"
+                                className="mt-3 text-(--muted-text)"
+                            >
+                                This video demonstration provides an overview of Orate, and explains how teachers and speach pathologists can configure,
+                                preview, and download the Wordle and Word Search activities.
                             </p>
 
-                            <div className="mt-6 rounded-xl border-2 border-dashed border-(--border) bg-(--surface-muted) p-(--panel-spacing)">
-                                <p className="font-semibold">
-                                    Instructional video to be added before
-                                    submission
-                                </p>
-                            </div>
+                            <figure className="mt-6">
+                                <video
+                                    controls
+                                    preload="metadata"
+                                    playsInline
+                                    aria-describedby="instructional-video-description"
+                                    className="aspect-video w-full rounded-xl border border-(--border) bg-black object-contain"
+                                >
+                                    <source
+                                        src="/videos/orate-demonstration.mp4"
+                                        type="video/mp4"
+                                    />
+
+                                    <track
+                                        src="/videos/orate-demonstration-captions.vtt"
+                                        kind="captions"
+                                        srcLang="en"
+                                        label="English"
+                                        default
+                                    />
+
+                                    <p>
+                                        Your browser does not support embedded video. You can{" "}
+                                        <a href="/videos/orate-demonstration.mp4">
+                                            download the demonstration video
+                                        </a>
+                                        {" "}instead.
+                                    </p>
+                                </video>
+                            </figure>
                         </section>
                     </div>
 
