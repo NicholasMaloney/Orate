@@ -1,4 +1,8 @@
-# Orate
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public\branding\orate-logo-horizontal-reverse-4096.png">
+  <source media="(prefers-color-scheme: light)" srcset="public\branding\orate-logo-horizontal-4096.png">
+  <img alt="Description" src="public\branding\orate-logo-horizontal-4096.png">
+</picture>   
 
 Orate is a teacher-facing builder for phoneme Wordle and Word Search
 activities. It is intended for teachers and speech pathologists who want to
