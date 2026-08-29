@@ -28,7 +28,23 @@ export const PREFERENCE_COOKIE_NAMES = {
 export function isTheme(
     value: unknown,
 ): value is Theme {
-    return value === "light" || value === "dark";
+    return (
+        value === "light" ||
+        value === "dark" ||
+        value === "system"
+    );
+}
+
+/**
+ * Converts an Orate theme preference into a valid CSS color-scheme value.
+ * "light dark" lets the browser choose when System is selected.
+ */
+export function colorSchemeForTheme(
+    theme: Theme,
+): "light" | "dark" | "light dark" {
+    return theme === "system"
+        ? "light dark"
+        : theme;
 }
 
 // Validate the supported layout-density strings.

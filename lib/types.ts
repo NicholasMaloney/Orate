@@ -32,7 +32,7 @@ export type Difficulty = "easy" | "standard" | "challenging"
 // Colour palettes supported by the teacher interface. Not the activities 
     // union type prevents values such as "blue", "automatic", or a misspelled theme name 
     // from being used by TypeScript code.
-export type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "system";
 
 //Controls how much spacing the teacher interface uses.
 

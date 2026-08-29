@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { cookies } from "next/headers";
 import { PreferenceProvider } from "@/components/preference-provider";
-import { PREFERENCE_COOKIE_NAMES, preferencesFromCookies,} from "@/lib/preferences";
+import { colorSchemeForTheme, PREFERENCE_COOKIE_NAMES, preferencesFromCookies,} from "@/lib/preferences";
 import { SITE_DESCRIPTION, SITE_NAME, } from "@/lib/site";
 
 const geistSans = Geist({
@@ -70,7 +70,9 @@ export default async function RootLayout({
             }
             style={{
                 colorScheme:
-                    initialPreferences.theme,
+                    colorSchemeForTheme(
+                        initialPreferences.theme,
+                    ),
             }}
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
         >

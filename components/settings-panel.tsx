@@ -37,6 +37,12 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
         description:
             "Use the Deep Navy palette with light text.",
     },
+    {
+        value: "system",
+        label: "System",
+        description:
+            "Follow your browser or operating system colour preference.",
+    },
 ];
 
 const DENSITY_OPTIONS: readonly DensityOption[] = [
@@ -67,11 +73,10 @@ function preferenceButtonClasses(
     const unselectedClasses =
         "border-(--control-border) bg-(--surface-muted) text-foreground hover:border-(--accent) hover:bg-(--accent-soft)";
 
-    return `${sharedClasses} ${
-        isSelected
+    return `${sharedClasses} ${isSelected
             ? selectedClasses
             : unselectedClasses
-    }`;
+        }`;
 }
 
 export function SettingsPanel() {
@@ -137,8 +142,8 @@ export function SettingsPanel() {
 
                                     <span
                                         className={`mt-1 block text-sm ${isSelected
-                                                ? "text-(--action-text) opacity-90"
-                                                : "text-(--muted-text)"
+                                            ? "text-(--action-text) opacity-90"
+                                            : "text-(--muted-text)"
                                             }`}
                                     >
                                         {
@@ -207,8 +212,8 @@ export function SettingsPanel() {
 
                                         <span
                                             className={`mt-1 block text-sm ${isSelected
-                                                    ? "text-(--action-text) opacity-90"
-                                                    : "text-(--muted-text)"
+                                                ? "text-(--action-text) opacity-90"
+                                                : "text-(--muted-text)"
                                                 }`}
                                         >
                                             {

@@ -11,7 +11,7 @@ import {
     useState,
 } from "react";
 import { savePreferences } from "@/app/actions/preferences";
-import { DEFAULT_PREFERENCES } from "@/lib/preferences";
+import { colorSchemeForTheme, DEFAULT_PREFERENCES } from "@/lib/preferences";
 import type {
     LayoutDensity,
     PreferenceState,
@@ -54,7 +54,9 @@ function applyPreferencesToDocument(
         preferences.density;
 
     rootElement.style.colorScheme =
-        preferences.theme;
+        colorSchemeForTheme(
+            preferences.theme,
+        );
 }
 
 interface PreferenceProviderProps {
