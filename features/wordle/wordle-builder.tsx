@@ -16,7 +16,7 @@ import { usePreferences } from "@/components/preference-provider";
 
 export function WordleBuilder() {
     
-    const { preferences } = usePreferences();
+    const { resolvedTheme  } = usePreferences();
     const [
         wordId,     // Current state value
         setWordId   // Function that updates the state
@@ -35,7 +35,7 @@ export function WordleBuilder() {
     //const selectedDifficulty = DIFFICULTY_DETAILS[config.difficulty];
 
     const [downloadStatus, setDownloadStatus] = useState("");
-    const standaloneHtml = buildStandaloneWordleHtml(config, preferences.theme);
+    const standaloneHtml = buildStandaloneWordleHtml(config, resolvedTheme);
 
     // Download handler 
     function handleDownload() {
