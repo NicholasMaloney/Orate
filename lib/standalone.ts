@@ -7,7 +7,7 @@
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
 import { PHONEMES } from "@/lib/phoneme-definitions";
 import { getWordleWord, WORD_SEARCH_WORDS } from "@/lib/phonemes";
-import type { WordleConfig, WordSearchConfig, Theme } from "@/lib/types";
+import type { ResolvedTheme, WordleConfig, WordSearchConfig } from "@/lib/types";
 import { generateWordSearch } from "@/lib/word-search";
 
 function serializeForScript(value: unknown): string {
@@ -25,7 +25,7 @@ function documentShell({
   gameStyles,
 }: {
   title: string;
-  theme: Theme;
+  theme: ResolvedTheme;
   body: string;
   script: string;
   gameStyles: string;
@@ -419,7 +419,7 @@ const WORDLE_STYLES = `
   }
 `;
 
-export function buildStandaloneWordleHtml(config: WordleConfig, theme: Theme,): string {
+export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedTheme,): string {
   const selectedWord = getWordleWord(config.wordId);
   const maximumAttempts =
     DIFFICULTY_DETAILS[config.difficulty].attempts;
@@ -1142,7 +1142,7 @@ const WORD_SEARCH_STYLES = `
 
 export function buildStandaloneWordSearchHtml(
     config: WordSearchConfig,
-    theme: Theme,
+    theme: ResolvedTheme,
 ): string {
     const puzzle = generateWordSearch(config);
     const gridSize = puzzle.grid.length;

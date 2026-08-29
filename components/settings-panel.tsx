@@ -37,6 +37,12 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
         description:
             "Use the Deep Navy palette with light text.",
     },
+    {
+        value: "system",
+        label: "System",
+        description:
+            "Follow your browser or operating system colour preference.",
+    },
 ];
 
 const DENSITY_OPTIONS: readonly DensityOption[] = [
@@ -67,16 +73,16 @@ function preferenceButtonClasses(
     const unselectedClasses =
         "border-(--control-border) bg-(--surface-muted) text-foreground hover:border-(--accent) hover:bg-(--accent-soft)";
 
-    return `${sharedClasses} ${
-        isSelected
-            ? selectedClasses
-            : unselectedClasses
-    }`;
+    return `${sharedClasses} ${isSelected
+        ? selectedClasses
+        : unselectedClasses
+        }`;
 }
 
 export function SettingsPanel() {
     const {
         preferences,
+        resolvedTheme,
         status,
         setTheme,
         setDensity,
@@ -137,8 +143,8 @@ export function SettingsPanel() {
 
                                     <span
                                         className={`mt-1 block text-sm ${isSelected
-                                                ? "text-(--action-text) opacity-90"
-                                                : "text-(--muted-text)"
+                                            ? "text-(--action-text) opacity-90"
+                                            : "text-(--muted-text)"
                                             }`}
                                     >
                                         {
@@ -207,8 +213,8 @@ export function SettingsPanel() {
 
                                         <span
                                             className={`mt-1 block text-sm ${isSelected
-                                                    ? "text-(--action-text) opacity-90"
-                                                    : "text-(--muted-text)"
+                                                ? "text-(--action-text) opacity-90"
+                                                : "text-(--muted-text)"
                                                 }`}
                                         >
                                             {
@@ -243,12 +249,12 @@ export function SettingsPanel() {
                         <p className="mt-2 text-(--muted-text)">
                             <span className="capitalize">
                                 {preferences.theme}
-                            </span>{" "}
-                            theme with{" "}
+                            </span>
+                            {preferences.theme === "system"
+                                ? ` theme (currently ${resolvedTheme}) with `
+                                : " theme with "}
                             <span className="capitalize">
-                                {
-                                    preferences.density
-                                }
+                                {preferences.density}
                             </span>{" "}
                             spacing.
                         </p>

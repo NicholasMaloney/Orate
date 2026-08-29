@@ -21,7 +21,7 @@ const WORD_SEARCH_DIFFICULTY_DESCRIPTIONS: Readonly<Record<Difficulty, string>
 // Contains the teacher controls and preview for the Word Search activity 
 export function WordSearchBuilder() {
     // This is used for light/dark mode theme application
-    const { preferences } = usePreferences();
+    const { resolvedTheme  } = usePreferences();
     // Difficulty choices
     const [difficulty, setDifficulty] =
         useState<Difficulty>("standard");
@@ -43,7 +43,7 @@ export function WordSearchBuilder() {
     const [downloadStatus, setDownloadStatus] = useState("");
 
     // Preview and download both use this exact HTML string.
-    const standaloneHtml = buildStandaloneWordSearchHtml(config, preferences.theme);
+    const standaloneHtml = buildStandaloneWordSearchHtml(config, resolvedTheme);
 
     /**  This is a React 'functional update' 
         * essensially this handles an edge case: where multiple updates are queued e.g. a user clicks regen multiple times quickly 

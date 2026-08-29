@@ -29,10 +29,16 @@ export interface CompletePhonemeWord extends PhonemeWord {
 // Difficulty values that will be accepted by Wordle and Word search 
 export type Difficulty = "easy" | "standard" | "challenging"
 
-// Colour palettes supported by the teacher interface. Not the activities 
-    // union type prevents values such as "blue", "automatic", or a misspelled theme name 
-    // from being used by TypeScript code.
-export type Theme = "light" | "dark";
+// Colour palettes supported by the teacher interface. Not the activities
+// The concrete palette currently displayed by the application.
+export type ResolvedTheme =
+    | "light"
+    | "dark";
+
+// The teacher may select a concrete palette or follow the browser.
+export type Theme =
+    | ResolvedTheme
+    | "system";
 
 //Controls how much spacing the teacher interface uses.
 
