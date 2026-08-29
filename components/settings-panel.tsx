@@ -74,14 +74,15 @@ function preferenceButtonClasses(
         "border-(--control-border) bg-(--surface-muted) text-foreground hover:border-(--accent) hover:bg-(--accent-soft)";
 
     return `${sharedClasses} ${isSelected
-            ? selectedClasses
-            : unselectedClasses
+        ? selectedClasses
+        : unselectedClasses
         }`;
 }
 
 export function SettingsPanel() {
     const {
         preferences,
+        resolvedTheme,
         status,
         setTheme,
         setDensity,
@@ -248,12 +249,12 @@ export function SettingsPanel() {
                         <p className="mt-2 text-(--muted-text)">
                             <span className="capitalize">
                                 {preferences.theme}
-                            </span>{" "}
-                            theme with{" "}
+                            </span>
+                            {preferences.theme === "system"
+                                ? ` theme (currently ${resolvedTheme}) with `
+                                : " theme with "}
                             <span className="capitalize">
-                                {
-                                    preferences.density
-                                }
+                                {preferences.density}
                             </span>{" "}
                             spacing.
                         </p>

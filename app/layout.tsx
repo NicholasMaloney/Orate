@@ -5,17 +5,17 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { cookies } from "next/headers";
 import { PreferenceProvider } from "@/components/preference-provider";
-import { colorSchemeForTheme, PREFERENCE_COOKIE_NAMES, preferencesFromCookies,} from "@/lib/preferences";
+import { colorSchemeForTheme, PREFERENCE_COOKIE_NAMES, preferencesFromCookies, } from "@/lib/preferences";
 import { SITE_DESCRIPTION, SITE_NAME, } from "@/lib/site";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+    variable: "--font-geist-sans",
+    subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+    variable: "--font-geist-mono",
+    subsets: ["latin"],
 });
 
 // The home page defaults to Orate.
@@ -63,6 +63,9 @@ export default async function RootLayout({
         <html
             lang="en"
             data-theme={
+                initialPreferences.theme
+            }
+            data-theme-preference={
                 initialPreferences.theme
             }
             data-density={

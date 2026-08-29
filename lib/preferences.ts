@@ -8,6 +8,7 @@
 import type {
     LayoutDensity,
     PreferenceState,
+    ResolvedTheme,
     Theme,
 } from "@/lib/types";
 
@@ -45,6 +46,20 @@ export function colorSchemeForTheme(
     return theme === "system"
         ? "light dark"
         : theme;
+}
+
+// Resolves the saved preference into the concrete palette the interface uses.
+export function resolveTheme(
+    theme: Theme,
+    systemPrefersDark: boolean,
+): ResolvedTheme {
+    if (theme === "system") {
+        return systemPrefersDark
+            ? "dark"
+            : "light";
+    }
+
+    return theme;
 }
 
 // Validate the supported layout-density strings.

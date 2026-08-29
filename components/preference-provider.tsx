@@ -8,13 +8,16 @@
 import {
     createContext,
     useContext,
+    useEffect,
     useState,
+    useSyncExternalStore,
 } from "react";
 import { savePreferences } from "@/app/actions/preferences";
-import { colorSchemeForTheme, DEFAULT_PREFERENCES } from "@/lib/preferences";
+import { DEFAULT_PREFERENCES, resolveTheme, } from "@/lib/preferences";
 import type {
     LayoutDensity,
     PreferenceState,
+    ResolvedTheme,
     Theme,
 } from "@/lib/types";
 
@@ -22,6 +25,7 @@ import type {
 interface PreferenceContextValue {
     readonly preferences: PreferenceState;
     readonly status: string;
+    readonly resolvedTheme: ResolvedTheme;
 
     setTheme: (theme: Theme) => void;
 
@@ -38,25 +42,59 @@ const PreferenceContext =
         null,
     );
 
+const SYSTEM_DARK_THEME_QUERY =
+    "(prefers-color-scheme: dark)";
+
+function subscribeToSystemTheme(
+    onStoreChange: () => void,
+): () => void {
+    const mediaQuery = window.matchMedia(
+        SYSTEM_DARK_THEME_QUERY,
+    );
+
+    mediaQuery.addEventListener(
+        "change",
+        onStoreChange,
+    );
+
+    return () => {
+        mediaQuery.removeEventListener(
+            "change",
+            onStoreChange,
+        );
+    };
+}
+
+function getSystemPrefersDark(): boolean {
+    return window.matchMedia(
+        SYSTEM_DARK_THEME_QUERY,
+    ).matches;
+}
+
+function getServerSystemPrefersDark(): boolean {
+    return false;
+}
+
 // Applies the current values to the root HTML element.  
 // CSS will later use these data attributes to select the correct colour and spacing rules.
-
 function applyPreferencesToDocument(
     preferences: PreferenceState,
+    resolvedTheme: ResolvedTheme,
 ): void {
     const rootElement =
         document.documentElement;
 
     rootElement.dataset.theme =
+        resolvedTheme;
+
+    rootElement.dataset.themePreference =
         preferences.theme;
 
     rootElement.dataset.density =
         preferences.density;
 
     rootElement.style.colorScheme =
-        colorSchemeForTheme(
-            preferences.theme,
-        );
+        resolvedTheme;
 }
 
 interface PreferenceProviderProps {
@@ -69,14 +107,28 @@ export function PreferenceProvider({
     children,
 }: PreferenceProviderProps) {
     // The initial state will come from validated cookies read by the root Server Component.
-    
     const [preferences, setPreferences] =
-        useState<PreferenceState>(
-            initialPreferences,
+        useState<PreferenceState>(initialPreferences);
+    
+    const [status, setStatus] = useState("");
+    
+    const systemPrefersDark = useSyncExternalStore(
+            subscribeToSystemTheme,
+            getSystemPrefersDark,
+            getServerSystemPrefersDark,
         );
 
-    const [status, setStatus] = useState("");
+    const resolvedTheme = resolveTheme(
+        preferences.theme,
+        systemPrefersDark,
+    );
 
+    useEffect(() => {
+        applyPreferencesToDocument(
+            preferences,
+            resolvedTheme,
+        );
+    }, [preferences,resolvedTheme,]);
     
     // Apply a preference change immediately, then persist it on the server.
     // This is an optimistic update: the user sees the result without waiting for the cookie request to finish.
@@ -84,11 +136,6 @@ export function PreferenceProvider({
         nextPreferences: PreferenceState,
     ): Promise<void> {
         setPreferences(nextPreferences);
-
-        applyPreferencesToDocument(
-            nextPreferences,
-        );
-
         setStatus("Saving preferences...");
 
         try {
@@ -104,10 +151,11 @@ export function PreferenceProvider({
         }
     }
 
-    
+
     // Context consumers receive intention-revealing functions instead of the raw React state setter.
     const contextValue: PreferenceContextValue = {
         preferences,
+        resolvedTheme,
         status,
 
         setTheme: (theme) => {

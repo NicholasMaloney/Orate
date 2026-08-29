@@ -8,6 +8,7 @@ import {
     colorSchemeForTheme,
     isTheme,
     preferencesFromCookies,
+    resolveTheme,
 } from "@/lib/preferences";
 
 describe("theme preferences", () => {
@@ -68,4 +69,27 @@ describe("theme preferences", () => {
             colorSchemeForTheme("dark"),
         ).toBe("dark");
     });
+});
+
+describe("resolved themes", () => {
+    it.each([
+        ["light", true, "light"],
+        ["dark", false, "dark"],
+        ["system", false, "light"],
+        ["system", true, "dark"],
+    ] as const)(
+        "resolves %s with system dark=%s to %s",
+        (
+            preference,
+            systemPrefersDark,
+            expectedTheme,
+        ) => {
+            expect(
+                resolveTheme(
+                    preference,
+                    systemPrefersDark,
+                ),
+            ).toBe(expectedTheme);
+        },
+    );
 });
