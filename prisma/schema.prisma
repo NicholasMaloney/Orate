@@ -1,0 +1,10 @@
+// Generates the type-safe client into an existing ignored directory.
+generator client {
+  provider = "prisma-client"
+  output   = "../build/generated/prisma"
+}
+
+// Declares PostgreSQL as the application database.
+datasource db {
+  provider = "postgresql"
+}
