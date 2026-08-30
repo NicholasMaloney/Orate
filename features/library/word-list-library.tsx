@@ -1,19 +1,10 @@
 "use client";
 
-import {
-    useEffect,
-    useState,
-} from "react";
-
-import {
-    WordListForm,
-} from "@/features/library/word-list-form";
-import type {
-    WordListSummary,
-} from "@/features/library/types";
-import type {
-    ApiSuccessBody,
-} from "@/lib/api/responses";
+import {useEffect,useState,} from "react";
+import {WordListWorkspace,} from "@/features/library/word-list-workspace";
+import {WordListForm,} from "@/features/library/word-list-form";
+import type {WordListSummary,} from "@/features/library/types";
+import type {ApiSuccessBody,} from "@/lib/api/responses";
 
 type LoadingState =
     | "loading"
@@ -89,6 +80,8 @@ export function WordListLibrary() {
         setWordLists,
     ] = useState<readonly WordListSummary[]>([]);
 
+    const [managedWordList, setManagedWordList] =
+        useState<WordListSummary | null>(null);
     const [
         loadingState,
         setLoadingState,
@@ -161,15 +154,16 @@ export function WordListLibrary() {
         setFormSelection(null);
 
         setActionStatus(
-            `${savedWordList.name} was ${
-                wasEditing
-                    ? "updated"
-                    : "created"
+            `${savedWordList.name} was ${wasEditing
+                ? "updated"
+                : "created"
             }.`,
         );
     }
 
+
     function openCreateForm() {
+        setManagedWordList(null);
         setActionStatus("");
         setFormSelection({
             mode: "create",
@@ -179,13 +173,47 @@ export function WordListLibrary() {
     function openEditForm(
         wordList: WordListSummary,
     ) {
+        setManagedWordList(null);
         setActionStatus("");
         setFormSelection({
             mode: "edit",
             wordList,
         });
     }
+    // This opens the word-management workspace for the selected list.
+    function openWordManager(
+        wordList: WordListSummary,
+    ) {
+        setFormSelection(null);
+        setManagedWordList(wordList);
+        setActionStatus("");
+    }
 
+    // This keeps the summary card count in sync after adding a word.
+    function handleWordCountChanged(
+        listId: string,
+        wordCount: number,
+    ) {
+        setWordLists((currentLists) =>
+            currentLists.map((wordList) => (
+                wordList.id === listId
+                    ? {
+                        ...wordList,
+                        wordCount,
+                    }
+                    : wordList
+            )),
+        );
+
+        setManagedWordList((currentList) => (
+            currentList?.id === listId
+                ? {
+                    ...currentList,
+                    wordCount,
+                }
+                : currentList
+        ));
+    }
     return (
         <section
             className="mt-12"
@@ -262,6 +290,21 @@ export function WordListLibrary() {
                 />
             ) : null}
 
+            {managedWordList ? (
+                <div className="mt-6">
+                    <WordListWorkspace
+                        key={managedWordList.id}
+                        wordList={managedWordList}
+                        onClose={() =>
+                            setManagedWordList(null)
+                        }
+                        onWordCountChanged={
+                            handleWordCountChanged
+                        }
+                    />
+                </div>
+            ) : null}
+
             <p
                 aria-live="polite"
                 className="mt-4 min-h-6 text-sm text-(--muted-text)"
@@ -305,7 +348,7 @@ export function WordListLibrary() {
             ) : null}
 
             {loadingState === "ready" &&
-            wordLists.length === 0 ? (
+                wordLists.length === 0 ? (
                 <div className="mt-2 rounded-2xl border border-dashed border-(--control-border) bg-(--surface) p-(--panel-spacing) text-center">
                     <h3 className="text-lg font-semibold">
                         No word lists yet
@@ -318,7 +361,7 @@ export function WordListLibrary() {
             ) : null}
 
             {loadingState === "ready" &&
-            wordLists.length > 0 ? (
+                wordLists.length > 0 ? (
                 <div className="mt-2 grid gap-(--control-spacing) md:grid-cols-2">
                     {wordLists.map(
                         (wordList) => (
@@ -336,7 +379,7 @@ export function WordListLibrary() {
                                             wordList.wordCount
                                         }{" "}
                                         {wordList.wordCount ===
-                                        1
+                                            1
                                             ? "word"
                                             : "words"}
                                     </span>
@@ -354,29 +397,45 @@ export function WordListLibrary() {
                                     )}
                                 </p>
 
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        openEditForm(
-                                            wordList,
-                                        )
-                                    }
-                                    aria-controls="word-list-form"
-                                    aria-expanded={
-                                        formSelection?.mode ===
-                                            "edit" &&
-                                        formSelection.wordList
-                                            .id ===
-                                            wordList.id
-                                    }
-                                    className="mt-4 w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
-                                >
-                                    Edit list
-                                    <span className="sr-only">
-                                        {" "}
-                                        {wordList.name}
-                                    </span>
-                                </button>
+                                <div className="mt-4 flex flex-wrap gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            openWordManager(wordList)
+                                        }
+                                        aria-controls="word-list-workspace"
+                                        aria-expanded={
+                                            managedWordList?.id === wordList.id
+                                        }
+                                        className="w-fit rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                                    >
+                                        Manage words
+                                        <span className="sr-only">
+                                            {" "}
+                                            in {wordList.name}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            openEditForm(wordList)
+                                        }
+                                        aria-controls="word-list-form"
+                                        aria-expanded={
+                                            formSelection?.mode === "edit"
+                                            && formSelection.wordList.id
+                                            === wordList.id
+                                        }
+                                        className="w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
+                                    >
+                                        Edit list
+                                        <span className="sr-only">
+                                            {" "}
+                                            {wordList.name}
+                                        </span>
+                                    </button>
+                                </div>
                             </article>
                         ),
                     )}
