@@ -1,0 +1,108 @@
+/** 
+Notes for future me :) 
+- ActivityDifficulty prevents invalid difficulty strings at the database level.
+- wordId and wordListId are foreign keys connecting configurations to their content.
+- Relation arrays provide reverse navigation, such as retrieving every Wordle configuration using a word.
+- onDelete: Restrict protects saved activities from silently becoming invalid.
+- @@index makes configuration lookups by word or list more efficient.
+**/ 
+
+// Generates the type-safe client into an existing ignored directory.
+generator client {
+  provider = "prisma-client"
+  output   = "../build/generated/prisma"
+}
+
+// Declares PostgreSQL as the application database.
+datasource db {
+  provider = "postgresql"
+}
+
+// Database representation of the activity difficulty choices.
+enum ActivityDifficulty {
+  EASY
+  STANDARD
+  CHALLENGING
+}
+
+// A teacher-created collection of words used by activities.
+model WordList {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  words Word[]
+
+  // Saved Word Searches that depend on this list.
+  wordSearchConfigurations WordSearchConfiguration[]
+}
+
+// A word belongs to one list and contains an ordered phoneme sequence.
+model Word {
+  id         String   @id @default(uuid()) @db.Uuid
+  wordListId String   @db.Uuid
+  english    String
+  ipa        String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  wordList WordList      @relation(fields: [wordListId], references: [id], onDelete: Cascade)
+  phonemes WordPhoneme[]
+
+  // Saved Wordle activities that target this word.
+  wordleConfigurations WordleConfiguration[]
+
+  // Prevents the same English word appearing twice in one list.
+  @@unique([wordListId, english])
+}
+
+// Stores one phoneme token at a specific position within a word.
+model WordPhoneme {
+  id          String @id @default(uuid()) @db.Uuid
+  wordId      String @db.Uuid
+  position    Int
+  ipaSymbol   String
+  grapheme    String
+  exampleWord String
+  spokenName  String
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  // Each zero-based position can occur only once within a word.
+  @@unique([wordId, position])
+}
+
+// Stores a reusable Wordle setup targeting one database word.
+model WordleConfiguration {
+  id           String             @id @default(uuid()) @db.Uuid
+  name         String             @unique
+  wordId       String             @db.Uuid
+  difficulty   ActivityDifficulty @default(STANDARD)
+  hintsEnabled Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  // Restrict prevents a target word being removed while still in use.
+  word Word @relation(fields: [wordId], references: [id], onDelete: Restrict)
+
+  @@index([wordId])
+}
+
+// Stores a reusable Word Search setup based on one database word list.
+model WordSearchConfiguration {
+  id           String             @id @default(uuid()) @db.Uuid
+  name         String             @unique
+  wordListId   String             @db.Uuid
+  difficulty   ActivityDifficulty @default(STANDARD)
+  seed         Int
+  hintsEnabled Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  // Restrict preserves configurations that still depend on this list.
+  wordList WordList @relation(fields: [wordListId], references: [id], onDelete: Restrict)
+
+  @@index([wordListId])
+}

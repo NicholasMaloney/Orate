@@ -1,0 +1,37 @@
+# Defines Orate's local container services.
+name: orate
+
+services:
+  database:
+    # Pinning the patch version keeps development reproducible.
+    image: postgres:18.6
+
+    # PostgreSQL uses these values only when first creating the data directory.
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+
+    # Exposes PostgreSQL only to this computer.
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    # PostgreSQL 18 stores its versioned data beneath this parent directory.
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    # Reports healthy only when Orate's database accepts connections.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    restart: unless-stopped
+
+# A named volume preserves data when the container is recreated.
+volumes:
+  postgres_data:
