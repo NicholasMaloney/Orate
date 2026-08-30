@@ -5,23 +5,30 @@ import {
     useState,
 } from "react";
 
+import {
+    WordListForm,
+} from "@/features/library/word-list-form";
+import type {
+    WordListSummary,
+} from "@/features/library/types";
 import type {
     ApiSuccessBody,
 } from "@/lib/api/responses";
-
-interface WordListSummary {
-    readonly id: string;
-    readonly name: string;
-    readonly description: string | null;
-    readonly wordCount: number;
-    readonly createdAt: string;
-    readonly updatedAt: string;
-}
 
 type LoadingState =
     | "loading"
     | "ready"
     | "error";
+
+type WordListFormSelection =
+    | {
+        readonly mode: "create";
+    }
+    | {
+        readonly mode: "edit";
+        readonly wordList: WordListSummary;
+    }
+    | null;
 
 // Requests the lightweight summaries exposed by the collection API.
 async function fetchWordLists(
@@ -64,6 +71,18 @@ function formatUpdatedDate(
     ).format(new Date(updatedAt));
 }
 
+// Keeps newly created or renamed lists in alphabetical order.
+function sortWordLists(
+    wordLists: readonly WordListSummary[],
+): readonly WordListSummary[] {
+    return [...wordLists].sort(
+        (first, second) =>
+            first.name.localeCompare(
+                second.name,
+            ),
+    );
+}
+
 export function WordListLibrary() {
     const [
         wordLists,
@@ -75,11 +94,20 @@ export function WordListLibrary() {
         setLoadingState,
     ] = useState<LoadingState>("loading");
 
-    // Changing this value repeats the loading effect.
     const [
         refreshRequest,
         setRefreshRequest,
     ] = useState(0);
+
+    const [
+        formSelection,
+        setFormSelection,
+    ] = useState<WordListFormSelection>(null);
+
+    const [
+        actionStatus,
+        setActionStatus,
+    ] = useState("");
 
     useEffect(() => {
         const controller =
@@ -108,11 +136,55 @@ export function WordListLibrary() {
 
         void loadWordLists();
 
-        // Cancels the request if the page unmounts or refreshes.
         return () => {
             controller.abort();
         };
     }, [refreshRequest]);
+
+    function handleWordListSaved(
+        savedWordList: WordListSummary,
+    ) {
+        const wasEditing =
+            formSelection?.mode === "edit";
+
+        setWordLists((currentWordLists) =>
+            sortWordLists([
+                ...currentWordLists.filter(
+                    (wordList) =>
+                        wordList.id !==
+                        savedWordList.id,
+                ),
+                savedWordList,
+            ]),
+        );
+
+        setFormSelection(null);
+
+        setActionStatus(
+            `${savedWordList.name} was ${
+                wasEditing
+                    ? "updated"
+                    : "created"
+            }.`,
+        );
+    }
+
+    function openCreateForm() {
+        setActionStatus("");
+        setFormSelection({
+            mode: "create",
+        });
+    }
+
+    function openEditForm(
+        wordList: WordListSummary,
+    ) {
+        setActionStatus("");
+        setFormSelection({
+            mode: "edit",
+            wordList,
+        });
+    }
 
     return (
         <section
@@ -136,24 +208,66 @@ export function WordListLibrary() {
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={() =>
-                        setRefreshRequest(
-                            (currentRequest) =>
-                                currentRequest + 1,
-                        )
-                    }
-                    disabled={
-                        loadingState === "loading"
-                    }
-                    className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-wait disabled:opacity-60"
-                >
-                    {loadingState === "loading"
-                        ? "Loading…"
-                        : "Refresh library"}
-                </button>
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        type="button"
+                        onClick={openCreateForm}
+                        aria-controls="word-list-form"
+                        aria-expanded={
+                            formSelection?.mode ===
+                            "create"
+                        }
+                        className="rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                    >
+                        New word list
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setActionStatus("");
+                            setRefreshRequest(
+                                (currentRequest) =>
+                                    currentRequest + 1,
+                            );
+                        }}
+                        disabled={
+                            loadingState === "loading"
+                        }
+                        className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-wait disabled:opacity-60"
+                    >
+                        {loadingState === "loading"
+                            ? "Loading…"
+                            : "Refresh library"}
+                    </button>
+                </div>
             </div>
+
+            {formSelection ? (
+                <WordListForm
+                    key={
+                        formSelection.mode === "edit"
+                            ? formSelection.wordList.id
+                            : "new-word-list"
+                    }
+                    wordList={
+                        formSelection.mode === "edit"
+                            ? formSelection.wordList
+                            : null
+                    }
+                    onSaved={handleWordListSaved}
+                    onCancel={() =>
+                        setFormSelection(null)
+                    }
+                />
+            ) : null}
+
+            <p
+                aria-live="polite"
+                className="mt-4 min-h-6 text-sm text-(--muted-text)"
+            >
+                {actionStatus}
+            </p>
 
             <p
                 className="sr-only"
@@ -169,7 +283,7 @@ export function WordListLibrary() {
             {loadingState === "loading" ? (
                 <div
                     role="status"
-                    className="mt-6 rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-(--muted-text) shadow-sm"
+                    className="mt-2 rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-(--muted-text) shadow-sm"
                 >
                     Loading saved word lists…
                 </div>
@@ -178,7 +292,7 @@ export function WordListLibrary() {
             {loadingState === "error" ? (
                 <div
                     role="alert"
-                    className="mt-6 rounded-2xl border border-(--control-border) bg-(--surface) p-(--panel-spacing) shadow-sm"
+                    className="mt-2 rounded-2xl border border-(--control-border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                 >
                     <h3 className="text-lg font-semibold">
                         The library is unavailable
@@ -192,25 +306,25 @@ export function WordListLibrary() {
 
             {loadingState === "ready" &&
             wordLists.length === 0 ? (
-                <div className="mt-6 rounded-2xl border border-dashed border-(--control-border) bg-(--surface) p-(--panel-spacing) text-center">
+                <div className="mt-2 rounded-2xl border border-dashed border-(--control-border) bg-(--surface) p-(--panel-spacing) text-center">
                     <h3 className="text-lg font-semibold">
                         No word lists yet
                     </h3>
 
                     <p className="mt-2 text-(--muted-text)">
-                        Your first teacher-created word list will appear here.
+                        Select New word list to create your first classroom collection.
                     </p>
                 </div>
             ) : null}
 
             {loadingState === "ready" &&
             wordLists.length > 0 ? (
-                <div className="mt-6 grid gap-(--control-spacing) md:grid-cols-2">
+                <div className="mt-2 grid gap-(--control-spacing) md:grid-cols-2">
                     {wordLists.map(
                         (wordList) => (
                             <article
                                 key={wordList.id}
-                                className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
+                                className="flex flex-col rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                             >
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                     <h3 className="text-xl font-semibold">
@@ -228,7 +342,7 @@ export function WordListLibrary() {
                                     </span>
                                 </div>
 
-                                <p className="mt-3 leading-7 text-(--muted-text)">
+                                <p className="mt-3 flex-1 leading-7 text-(--muted-text)">
                                     {wordList.description ??
                                         "No description provided."}
                                 </p>
@@ -239,6 +353,30 @@ export function WordListLibrary() {
                                         wordList.updatedAt,
                                     )}
                                 </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        openEditForm(
+                                            wordList,
+                                        )
+                                    }
+                                    aria-controls="word-list-form"
+                                    aria-expanded={
+                                        formSelection?.mode ===
+                                            "edit" &&
+                                        formSelection.wordList
+                                            .id ===
+                                            wordList.id
+                                    }
+                                    className="mt-4 w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
+                                >
+                                    Edit list
+                                    <span className="sr-only">
+                                        {" "}
+                                        {wordList.name}
+                                    </span>
+                                </button>
                             </article>
                         ),
                     )}
