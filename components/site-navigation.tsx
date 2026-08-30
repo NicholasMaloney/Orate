@@ -15,6 +15,10 @@ const PRIMARY_LINKS = [
         label: "Home",
     },
     {
+        href: "/library",
+        label: "Library",
+    },
+    {
         href: "/wordle",
         label: "Wordle",
     },
