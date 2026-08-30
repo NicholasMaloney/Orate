@@ -10,6 +10,9 @@ export default defineConfig({
 
     migrations: {
         path: "prisma/migrations",
+
+        // Runs the repeatable starter-content script through Prisma.
+        seed: "tsx prisma/seed.ts",
     },
 
     // Loads the local or container-provided PostgreSQL connection string.

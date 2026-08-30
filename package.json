@@ -11,7 +11,8 @@
     "test:run": "vitest run",
     "db:format": "prisma format",
     "db:generate": "prisma generate",
-    "db:validate": "prisma validate"
+    "db:validate": "prisma validate",
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
