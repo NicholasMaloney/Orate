@@ -12,6 +12,9 @@ import {
 } from "@/lib/api/validation";
 import { getDatabase } from "@/lib/database/client";
 import { hasPrismaErrorCode } from "@/lib/database/errors";
+import {
+    WORD_WITH_PHONEMES_SELECT,
+} from "@/lib/database/selections";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,26 +76,7 @@ export async function GET(
                         orderBy: {
                             english: "asc",
                         },
-                        select: {
-                            id: true,
-                            english: true,
-                            ipa: true,
-                            createdAt: true,
-                            updatedAt: true,
-                            phonemes: {
-                                orderBy: {
-                                    position: "asc",
-                                },
-                                select: {
-                                    id: true,
-                                    position: true,
-                                    ipaSymbol: true,
-                                    grapheme: true,
-                                    exampleWord: true,
-                                    spokenName: true,
-                                },
-                            },
-                        },
+                        select: WORD_WITH_PHONEMES_SELECT,
                     },
                 },
             });
