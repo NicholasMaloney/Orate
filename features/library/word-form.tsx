@@ -1,9 +1,9 @@
 "use client";
 
-import {useState,type SubmitEventHandler,} from "react";
+import { useState, type SubmitEventHandler, } from "react";
 
-import {PhonemeTokenEditor,} from "@/features/library/phoneme-token-editor";
-import type {PhonemeTokenDraft,WordRecord,} from "@/features/library/types";
+import { PhonemeTokenEditor, } from "@/features/library/phoneme-token-editor";
+import type { PhonemeTokenDraft, WordRecord, } from "@/features/library/types";
 
 interface WordFormProps {
     readonly wordListId: string;
@@ -84,7 +84,7 @@ export function WordForm({
                 throw new Error(
                     "error" in body
                         ? body.error?.message
-                            ?? "The word could not be saved."
+                        ?? "The word could not be saved."
                         : "The word could not be saved.",
                 );
             }
@@ -114,8 +114,8 @@ export function WordForm({
             </h3>
 
             <p className="mt-2 text-sm text-(--muted-text)">
-                Enter the complete word, then describe each sound as
-                a separate ordered phoneme token.
+                Enter the complete word and IPA transcription, then
+                describe each sound as a separate ordered phoneme token.
             </p>
 
             <form
@@ -150,6 +150,7 @@ export function WordForm({
                         Complete IPA transcription
 
                         <input
+                            aria-describedby="new-word-ipa-help"
                             className="w-full rounded-lg border border-(--control-border) bg-(--surface) px-3 py-2 text-foreground transition-colors focus:border-(--accent) focus:outline-none focus:ring-2 focus:ring-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={isSubmitting}
                             id="new-word-ipa"
@@ -161,6 +162,13 @@ export function WordForm({
                             required
                             value={ipa}
                         />
+                        <span
+                            className="text-xs font-normal text-(--muted-text)"
+                            id="new-word-ipa-help"
+                        >
+                            Enter the complete transcription with or without
+                            slashes. Orate stores exactly one surrounding pair.
+                        </span>
                     </label>
                 </div>
 

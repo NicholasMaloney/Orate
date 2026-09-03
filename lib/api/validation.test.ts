@@ -55,6 +55,58 @@ describe("API validation", () => {
         ]);
     });
 
+    it("normalizes word and phoneme IPA conventions", () => {
+        const result = createWordSchema.parse({
+            english: "chin",
+            ipa: " //tʃɪn// ",
+            phonemes: [
+                {
+                    ipaSymbol: "/tʃ/",
+                    grapheme: "CH",
+                    exampleWord: "chin",
+                    spokenName: "ch",
+                },
+            ],
+        });
+
+        expect(result.ipa).toBe("/tʃɪn/");
+        expect(result.phonemes[0].ipaSymbol).toBe("tʃ");
+    });
+
+    it("rejects IPA values containing only delimiters", () => {
+        const result = createWordSchema.safeParse({
+            english: "invalid",
+            ipa: "///",
+            phonemes: [
+                {
+                    ipaSymbol: "/",
+                    grapheme: "X",
+                    exampleWord: "example",
+                    spokenName: "invalid",
+                },
+            ],
+        });
+
+        expect(result.success).toBe(false);
+
+        if (result.success) {
+            throw new Error(
+                "Delimiter-only IPA should not pass validation.",
+            );
+        }
+
+        expect(
+            result.error.issues.map(
+                (issue) => issue.path.join("."),
+            ),
+        ).toEqual(
+            expect.arrayContaining([
+                "ipa",
+                "phonemes.0.ipaSymbol",
+            ]),
+        );
+    });
+
     it("rejects empty update requests", () => {
         const result =
             updateWordListSchema.safeParse({});

@@ -3,6 +3,7 @@ import {
     errorResponse,
     type ApiErrorDetail,
 } from "@/lib/api/responses"; 
+import { normaliseIpaSymbol, normaliseIpaTranscription } from "@/lib/ipa";
 
 const POSTGRES_INTEGER_MINIMUM = -2_147_483_648;
 const POSTGRES_INTEGER_MAXIMUM = 2_147_483_647;
@@ -46,6 +47,26 @@ const descriptionSchema = z
     .nullable()
     .optional();
 
+const ipaSymbolSchema = requiredText(
+    "IPA symbol",
+    20,
+)
+    .transform(normaliseIpaSymbol)
+    .refine(
+        (value) => value.length > 0,
+        "IPA symbol must contain at least one symbol.",
+    );
+
+const ipaTranscriptionSchema = requiredText(
+    "IPA transcription",
+    200,
+)
+    .transform(normaliseIpaTranscription)
+    .refine(
+        (value) => value.length > 2,
+        "IPA transcription must contain at least one symbol.",
+    );
+
 export const createWordListSchema = z
     .object({
         name: requiredText("Name", 100),
@@ -62,7 +83,7 @@ export const updateWordListSchema =
 
 export const phonemeInputSchema = z 
     .object({
-        ipaSymbol: requiredText("IPA symbol", 20),
+        ipaSymbol: ipaSymbolSchema,
         grapheme: requiredText("Grapheme", 30),
         exampleWord: requiredText("Example word", 100),
         spokenName: requiredText("Spoken name", 100),
@@ -72,7 +93,7 @@ export const phonemeInputSchema = z
 export const createWordSchema = z
     .object({
         english: requiredText("English word", 100),
-        ipa: requiredText("IPA transcription", 200),
+        ipa: ipaTranscriptionSchema,
         // Array order becomes each phoneme's database position.
         phonemes: z
             .array(phonemeInputSchema)

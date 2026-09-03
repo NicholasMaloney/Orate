@@ -138,7 +138,8 @@ export function PhonemeTokenEditor({
 
             <p className="text-sm text-(--muted-text)">
                 Add one token for each sound, then arrange the
-                tokens in the order they are spoken.
+                tokens in the order they are spoken. Enter individual
+                IPA symbols without slash delimiters.
             </p>
 
             <div className="space-y-4">

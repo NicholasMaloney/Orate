@@ -214,7 +214,7 @@ export function WordListWorkspace({
                                     </h3>
 
                                     <span className="text-(--muted-text)">
-                                        /{word.ipa}/
+                                        {word.ipa}
                                     </span>
                                 </div>
 
