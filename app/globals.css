@@ -31,6 +31,8 @@ html[data-theme="system"] {
     --action-text: #ffffff;
 
     --focus-ring: #245d8a;
+    --success: #1f6f43;
+    --danger: #b42318;
 }
 
 /*
@@ -57,6 +59,8 @@ html[data-theme="dark"] {
     --action-text: #ffffff;
 
     --focus-ring: #8cc4ea;
+    --success: #86efac;
+    --danger: #fca5a5;
 }
 
 /*
@@ -84,6 +88,8 @@ html[data-theme="dark"] {
         --action-text: #ffffff;
 
         --focus-ring: #8cc4ea;
+        --success: #86efac;
+        --danger: #fca5a5;
     }
 }
 
