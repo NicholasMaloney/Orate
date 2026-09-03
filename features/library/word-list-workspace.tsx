@@ -7,6 +7,7 @@ import type {
     WordListSummary,
     WordRecord,
 } from "@/features/library/types";
+import { requireNoContent } from "@/lib/api/client";
 
 interface WordListWorkspaceProps {
     readonly wordList: WordListSummary;
@@ -45,10 +46,18 @@ function upsertWord(
     );
 }
 
+function removeWord(
+    words: readonly WordRecord[],
+    wordId: string,
+): readonly WordRecord[] {
+    return words.filter((word) => word.id !== wordId);
+}
+
 export function WordListWorkspace({
     wordList,
     onClose,
     onWordCountChanged,
+
 }: WordListWorkspaceProps) {
     const [detail, setDetail] = useState<WordListDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +69,8 @@ export function WordListWorkspace({
     const [statusMessage, setStatusMessage] = useState<string | null>(
         null,
     );
+    const [deletingWordId, setDeletingWordId] =
+        useState<string | null>(null);
 
     // This loads the selected list and its database-backed words.
     useEffect(() => {
@@ -108,6 +119,7 @@ export function WordListWorkspace({
                         }
                         : null;
                 });
+
             } catch (error) {
                 if (
                     error instanceof DOMException
@@ -180,6 +192,83 @@ export function WordListWorkspace({
             `${savedWord.english} was ${existed ? "updated" : "added"
             }.`,
         );
+    }
+
+    async function handleDeleteWord(word: WordRecord) {
+        const confirmed = window.confirm(
+            `Delete "${word.english}" and its phoneme sequence?`,
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeletingWordId(word.id);
+        setErrorMessage(null);
+        setStatusMessage(null);
+
+        try {
+            const response = await fetch(
+                `/api/words/${word.id}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Accept: "application/json",
+                    },
+                },
+            );
+
+            await requireNoContent(
+                response,
+                "The word could not be deleted.",
+            );
+
+            const remainingWords = removeWord(
+                detail?.words ?? [],
+                word.id,
+            );
+
+            setDetail((current) => {
+                if (!current) {
+                    return current;
+                }
+
+                const words = removeWord(
+                    current.words,
+                    word.id,
+                );
+
+                return {
+                    ...current,
+                    words,
+                    wordCount: words.length,
+                };
+            });
+
+            setFormSelection((current) =>
+                current?.mode === "edit" &&
+                    current.word.id === word.id
+                    ? null
+                    : current,
+            );
+
+            onWordCountChanged(
+                wordList.id,
+                remainingWords.length,
+            );
+
+            setStatusMessage(
+                `${word.english} was deleted.`,
+            );
+        } catch (error) {
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : "The word could not be deleted.",
+            );
+        } finally {
+            setDeletingWordId(null);
+        }
     }
 
     return (
@@ -294,6 +383,7 @@ export function WordListWorkspace({
                             <article
                                 className="rounded-xl border border-(--border) bg-background p-4"
                                 key={word.id}
+                                aria-busy={deletingWordId === word.id}
                             >
                                 <div className="flex flex-wrap items-baseline gap-3">
                                     <h3 className="text-lg font-semibold">
@@ -339,12 +429,13 @@ export function WordListWorkspace({
                                 </div>
                                 <div className="mt-4 flex flex-wrap gap-3">
                                     <button
+                                        type="button"
+                                        disabled={deletingWordId !== null}
                                         aria-controls="word-form"
                                         aria-expanded={
                                             formSelection?.mode === "edit" &&
                                             formSelection.word.id === word.id
                                         }
-                                        className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                                         onClick={() => {
                                             setFormSelection({
                                                 mode: "edit",
@@ -353,11 +444,27 @@ export function WordListWorkspace({
                                             setErrorMessage(null);
                                             setStatusMessage(null);
                                         }}
-                                        type="button"
+                                        className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         Edit
                                         <span className="sr-only">
-                                            {" "}{word.english}
+                                            {" "}
+                                            {word.english}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={deletingWordId !== null}
+                                        onClick={() => void handleDeleteWord(word)}
+                                        className="rounded-lg border border-(--danger) bg-(--surface) px-4 py-2 font-semibold text-(--danger) transition-colors hover:bg-(--surface-muted) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-wait disabled:opacity-60"
+                                    >
+                                        {deletingWordId === word.id
+                                            ? "Deleting…"
+                                            : "Delete"}
+                                        <span className="sr-only">
+                                            {" "}
+                                            {word.english}
                                         </span>
                                     </button>
                                 </div>
