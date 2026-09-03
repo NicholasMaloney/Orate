@@ -135,7 +135,7 @@ export function WordListWorkspace({
                 </div>
 
                 <button
-                    className="secondary-button"
+                    className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-5 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     onClick={onClose}
                     type="button"
                 >
@@ -145,7 +145,7 @@ export function WordListWorkspace({
 
             <div className="flex flex-wrap gap-3">
                 <button
-                    className="primary-button"
+                    className="rounded-lg bg-(--action) px-5 py-2 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     onClick={() => {
                         setIsAddingWord(true);
                         setStatusMessage(null);
@@ -156,7 +156,7 @@ export function WordListWorkspace({
                 </button>
 
                 <button
-                    className="secondary-button"
+                    className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-5 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     onClick={() => setRefreshNumber((
                         current,
                     ) => current + 1)}
@@ -198,7 +198,7 @@ export function WordListWorkspace({
 
             {!isLoading && detail ? (
                 detail.words.length === 0 ? (
-                    <p className="text-(--muted-foreground)">
+                    <p className="text-(--muted-text)">
                         This list does not contain any words yet.
                     </p>
                 ) : (
@@ -213,7 +213,7 @@ export function WordListWorkspace({
                                         {word.english}
                                     </h3>
 
-                                    <span className="text-(--muted-foreground)">
+                                    <span className="text-(--muted-text)">
                                         /{word.ipa}/
                                     </span>
                                 </div>

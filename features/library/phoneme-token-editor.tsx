@@ -17,31 +17,31 @@ const TOKEN_FIELDS: readonly {
     readonly placeholder: string;
     readonly maxLength: number;
 }[] = [
-    {
-        name: "ipaSymbol",
-        label: "IPA symbol",
-        placeholder: "tʃ",
-        maxLength: 20,
-    },
-    {
-        name: "grapheme",
-        label: "Written letters",
-        placeholder: "ch",
-        maxLength: 30,
-    },
-    {
-        name: "spokenName",
-        label: "Spoken name",
-        placeholder: "ch sound",
-        maxLength: 100,
-    },
-    {
-        name: "exampleWord",
-        label: "Example word",
-        placeholder: "chin",
-        maxLength: 100,
-    },
-];
+        {
+            name: "ipaSymbol",
+            label: "IPA symbol",
+            placeholder: "tʃ",
+            maxLength: 20,
+        },
+        {
+            name: "grapheme",
+            label: "Written letters",
+            placeholder: "ch",
+            maxLength: 30,
+        },
+        {
+            name: "spokenName",
+            label: "Spoken name",
+            placeholder: "ch sound",
+            maxLength: 100,
+        },
+        {
+            name: "exampleWord",
+            label: "Example word",
+            placeholder: "chin",
+            maxLength: 100,
+        },
+    ];
 
 function createEmptyToken(key: string): PhonemeTokenDraft {
     return {
@@ -108,9 +108,9 @@ export function PhonemeTokenEditor({
             reorderedTokens[index],
             reorderedTokens[destination],
         ] = [
-            reorderedTokens[destination],
-            reorderedTokens[index],
-        ];
+                reorderedTokens[destination],
+                reorderedTokens[index],
+            ];
 
         onChange(reorderedTokens);
     }
@@ -132,16 +132,14 @@ export function PhonemeTokenEditor({
             className="space-y-4"
             disabled={disabled}
         >
-            <div>
-                <legend className="text-base font-semibold">
-                    Ordered phonemes
-                </legend>
+            <legend className="text-base font-semibold">
+                Ordered phonemes
+            </legend>
 
-                <p className="mt-1 text-sm text-(--muted-foreground)">
-                    Add one token for each sound, then arrange the
-                    tokens in the order they are spoken.
-                </p>
-            </div>
+            <p className="text-sm text-(--muted-text)">
+                Add one token for each sound, then arrange the
+                tokens in the order they are spoken.
+            </p>
 
             <div className="space-y-4">
                 {tokens.map((token, index) => (
@@ -156,7 +154,7 @@ export function PhonemeTokenEditor({
 
                             <div className="flex flex-wrap gap-2">
                                 <button
-                                    className="mt-4 rounded-lg bg-(--action) px-5 py-3 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                                    className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-40"
                                     disabled={index === 0}
                                     onClick={() => moveToken(index, -1)}
                                     type="button"
@@ -165,7 +163,7 @@ export function PhonemeTokenEditor({
                                 </button>
 
                                 <button
-                                    className="mt-4 rounded-lg bg-(--action) px-5 py-3 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                                    className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-40"
                                     disabled={index === tokens.length - 1}
                                     onClick={() => moveToken(index, 1)}
                                     type="button"
@@ -174,7 +172,7 @@ export function PhonemeTokenEditor({
                                 </button>
 
                                 <button
-                                    className="mt-4 rounded-lg bg-(--action) px-5 py-3 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                                    className="rounded-lg border border-(--danger) bg-(--surface) px-3 py-2 text-sm font-semibold text-(--danger) transition-colors hover:bg-(--surface-muted) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-40"
                                     disabled={tokens.length === 1}
                                     onClick={() => removeToken(index)}
                                     type="button"
@@ -197,7 +195,7 @@ export function PhonemeTokenEditor({
                                         {field.label}
 
                                         <input
-                                            className="text-input"
+                                            className="w-full rounded-lg border border-(--control-border) bg-(--surface) px-3 py-2 text-foreground transition-colors focus:border-(--accent) focus:outline-none focus:ring-2 focus:ring-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                                             id={inputId}
                                             maxLength={field.maxLength}
                                             onChange={(event) => updateToken(
@@ -218,7 +216,7 @@ export function PhonemeTokenEditor({
             </div>
 
             <button
-                className="secondary-button"
+                className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-5 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={addToken}
                 type="button"
             >

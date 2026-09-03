@@ -113,7 +113,7 @@ export function WordForm({
                 Add a word
             </h3>
 
-            <p className="mt-2 text-sm text-(--muted-foreground)">
+            <p className="mt-2 text-sm text-(--muted-text)">
                 Enter the complete word, then describe each sound as
                 a separate ordered phoneme token.
             </p>
@@ -130,7 +130,7 @@ export function WordForm({
                         English word
 
                         <input
-                            className="text-input"
+                            className="w-full rounded-lg border border-(--control-border) bg-(--surface) px-3 py-2 text-foreground transition-colors focus:border-(--accent) focus:outline-none focus:ring-2 focus:ring-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={isSubmitting}
                             id="new-word-english"
                             maxLength={100}
@@ -150,7 +150,7 @@ export function WordForm({
                         Complete IPA transcription
 
                         <input
-                            className="text-input"
+                            className="w-full rounded-lg border border-(--control-border) bg-(--surface) px-3 py-2 text-foreground transition-colors focus:border-(--accent) focus:outline-none focus:ring-2 focus:ring-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={isSubmitting}
                             id="new-word-ipa"
                             maxLength={200}
@@ -181,7 +181,7 @@ export function WordForm({
 
                 <div className="flex flex-wrap gap-3">
                     <button
-                        className="primary-button"
+                        className="rounded-lg bg-(--action) px-5 py-2 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-wait disabled:opacity-60"
                         disabled={isSubmitting}
                         type="submit"
                     >
@@ -191,7 +191,7 @@ export function WordForm({
                     </button>
 
                     <button
-                        className="secondary-button"
+                        className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-5 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={isSubmitting}
                         onClick={onCancel}
                         type="button"
