@@ -1,7 +1,7 @@
 "use client";
 
-import {useEffect,useState,} from "react";
-import {WordForm,} from "@/features/library/word-form";
+import { useEffect, useState, } from "react";
+import { WordForm, } from "@/features/library/word-form";
 import type {
     WordListDetail,
     WordListSummary,
@@ -17,8 +17,32 @@ interface WordListWorkspaceProps {
     ) => void;
 }
 
+type WordFormSelection =
+    | {
+        readonly mode: "create";
+    }
+    | {
+        readonly mode: "edit";
+        readonly word: WordRecord;
+    }
+    | null;
+
 interface ApiSuccessBody<T> {
     readonly data: T;
+}
+
+function upsertWord(
+    words: readonly WordRecord[],
+    savedWord: WordRecord,
+): readonly WordRecord[] {
+    return [
+        ...words.filter(
+            (word) => word.id !== savedWord.id,
+        ),
+        savedWord,
+    ].sort((left, right) =>
+        left.english.localeCompare(right.english),
+    );
 }
 
 export function WordListWorkspace({
@@ -28,7 +52,7 @@ export function WordListWorkspace({
 }: WordListWorkspaceProps) {
     const [detail, setDetail] = useState<WordListDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isAddingWord, setIsAddingWord] = useState(false);
+    const [formSelection, setFormSelection] = useState<WordFormSelection>(null);
     const [refreshNumber, setRefreshNumber] = useState(0);
     const [errorMessage, setErrorMessage] = useState<string | null>(
         null,
@@ -62,7 +86,28 @@ export function WordListWorkspace({
                 const body = await response.json() as
                     ApiSuccessBody<WordListDetail>;
 
-                setDetail(body.data);
+                const loadedDetail = body.data;
+
+                setDetail(loadedDetail);
+
+                setFormSelection((current) => {
+                    if (current?.mode !== "edit") {
+                        return current;
+                    }
+
+                    const refreshedWord =
+                        loadedDetail.words.find(
+                            (word) =>
+                                word.id === current.word.id,
+                        );
+
+                    return refreshedWord
+                        ? {
+                            mode: "edit",
+                            word: refreshedWord,
+                        }
+                        : null;
+                });
             } catch (error) {
                 if (
                     error instanceof DOMException
@@ -91,27 +136,50 @@ export function WordListWorkspace({
         wordList.id,
     ]);
 
-    // This adds the new API record to the visible list immediately.
-    function handleWordCreated(word: WordRecord) {
+    function handleWordSaved(
+        savedWord: WordRecord,
+    ) {
         if (!detail) {
             return;
         }
 
-        const words = [
-            ...detail.words,
-            word,
-        ].sort((left, right) => (
-            left.english.localeCompare(right.english)
-        ));
+        const existed = detail.words.some(
+            (word) => word.id === savedWord.id,
+        );
 
-        setDetail({
-            ...detail,
-            words,
-            wordCount: words.length,
+        const visibleWords = upsertWord(
+            detail.words,
+            savedWord,
+        );
+
+        setDetail((current) => {
+            if (!current) {
+                return current;
+            }
+
+            const words = upsertWord(
+                current.words,
+                savedWord,
+            );
+
+            return {
+                ...current,
+                words,
+                wordCount: words.length,
+            };
         });
-        onWordCountChanged(wordList.id, words.length);
-        setIsAddingWord(false);
-        setStatusMessage(`${word.english} was added.`);
+
+        onWordCountChanged(
+            wordList.id,
+            visibleWords.length,
+        );
+
+        setFormSelection(null);
+        setErrorMessage(null);
+        setStatusMessage(
+            `${savedWord.english} was ${existed ? "updated" : "added"
+            }.`,
+        );
     }
 
     return (
@@ -145,9 +213,16 @@ export function WordListWorkspace({
 
             <div className="flex flex-wrap gap-3">
                 <button
+                    aria-controls="word-form"
+                    aria-expanded={
+                        formSelection?.mode === "create"
+                    }
                     className="rounded-lg bg-(--action) px-5 py-2 font-semibold text-(--action-text) transition-colors hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                     onClick={() => {
-                        setIsAddingWord(true);
+                        setFormSelection({
+                            mode: "create",
+                        });
+                        setErrorMessage(null);
                         setStatusMessage(null);
                     }}
                     type="button"
@@ -166,10 +241,22 @@ export function WordListWorkspace({
                 </button>
             </div>
 
-            {isAddingWord ? (
+            {formSelection ? (
                 <WordForm
-                    onCancel={() => setIsAddingWord(false)}
-                    onCreated={handleWordCreated}
+                    key={
+                        formSelection.mode === "edit"
+                            ? formSelection.word.id
+                            : "new-word"
+                    }
+                    onCancel={() =>
+                        setFormSelection(null)
+                    }
+                    onSaved={handleWordSaved}
+                    word={
+                        formSelection.mode === "edit"
+                            ? formSelection.word
+                            : null
+                    }
                     wordListId={wordList.id}
                 />
             ) : null}
@@ -249,6 +336,30 @@ export function WordListWorkspace({
                                             </span>
                                         </div>
                                     ))}
+                                </div>
+                                <div className="mt-4 flex flex-wrap gap-3">
+                                    <button
+                                        aria-controls="word-form"
+                                        aria-expanded={
+                                            formSelection?.mode === "edit" &&
+                                            formSelection.word.id === word.id
+                                        }
+                                        className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground transition-colors hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                                        onClick={() => {
+                                            setFormSelection({
+                                                mode: "edit",
+                                                word,
+                                            });
+                                            setErrorMessage(null);
+                                            setStatusMessage(null);
+                                        }}
+                                        type="button"
+                                    >
+                                        Edit
+                                        <span className="sr-only">
+                                            {" "}{word.english}
+                                        </span>
+                                    </button>
                                 </div>
                             </article>
                         ))}
