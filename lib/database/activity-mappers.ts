@@ -1,15 +1,27 @@
-import type { 
+import type {
     Word as DatabaseWord,
     WordList as DatabaseWordList,
     WordPhoneme as DatabaseWordPhoneme,
-} from "@/build/generated/prisma/client"; 
+} from "@/build/generated/prisma/client";
 
-import type { 
+import {
+    normaliseIpaSymbol,
+    normaliseIpaTranscription,
+} from "@/lib/ipa";
+import type {
+    ActivityWordListData,
     CompletePhonemeWord,
     Phoneme,
-}from "@/lib/types";
+} from "@/lib/types";
 
-// Describes the database fields required to build one activity phoneme 
+// Lets API routes distinguish invalid content from server failures.
+export class InvalidActivityContentError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "InvalidActivityContentError";
+    }
+}
+
 export type ActivityPhonemeRecord = Pick<
     DatabaseWordPhoneme,
     | "id"
@@ -20,99 +32,198 @@ export type ActivityPhonemeRecord = Pick<
     | "spokenName"
 >;
 
-// Describes a database word loaded with its related phoneme records.
 export type ActivityWordRecord = Pick<
     DatabaseWord,
-    | "id"
-    | "english"
-    | "ipa"
+    "id" | "english" | "ipa"
 > & {
-    readonly phonemes: readonly ActivityPhonemeRecord[];
+    readonly phonemes:
+        readonly ActivityPhonemeRecord[];
 };
 
-// Describe a database word list loaded with words and phonemes
 export type ActivityWordListRecord = Pick<
     DatabaseWordList,
-    | "id"
-    | "name"
-    | "description"
+    "id" | "name" | "description"
 > & {
     readonly words: readonly ActivityWordRecord[];
-}; 
-// Contains the activity representation of one database word.
+};
+
 export interface ActivityWordData {
     readonly word: CompletePhonemeWord;
     readonly phonemes: readonly Phoneme[];
 }
 
-// Contains the serialisable activity content form one word list/ 
-export interface ActivityWordListData {
-    readonly id: string;
-    readonly name: string;
-    readonly description: string | null; 
-    readonly words: readonly CompletePhonemeWord[]; 
-    readonly phonemes: readonly Phoneme[]; 
-}
+function normaliseStoredPhonemeSymbol(
+    value: string,
+): string {
+    const normalised = normaliseIpaSymbol(value);
 
-// Converts one stored phoneme into Orate's display friendly domain type. 
-function mapPhonemeRecord(
-    phoneme: ActivityPhonemeRecord,
-): Phoneme {
-    return {
-        id: phoneme.id,
-        ipaSymbol: phoneme.ipaSymbol,
-        grapheme: phoneme.grapheme,
-        exampleWord: phoneme.exampleWord,
-        spokenName: phoneme.spokenName,
-    };
-}
-
-// Checks and orders the sequence before activity generation uses it. 
-function orderPhonemeRecords( 
-    word: ActivityWordRecord, 
-): readonly ActivityPhonemeRecord[] {
-    const orderedPhonemes = [...word.phonemes].sort(
-        (first, second) => first.position - second.position,
-    );
-
-    if (orderedPhonemes.length === 0 ) {
-        throw new Error( 
-            `Word "${word.english}" does not contain any phonemes.`
+    if (!normalised) {
+        throw new InvalidActivityContentError(
+            "An activity phoneme must contain an IPA symbol.",
         );
     }
 
-    orderedPhonemes.forEach((phoneme, expectPosition) => {
-        if (phoneme.position !== expectPosition) {
-            throw new Error( 
-                `Word "${word.english}" must use consecutive phoneme positions starting at zero.`,
-            );
-        }
-    });
-
-    return orderedPhonemes;
+    return normalised;
 }
 
-// Produces the word and phoneme definitions required by an activity.
+// Activity identity is derived from normalised Unicode code points.
+export function createCanonicalPhonemeId(
+    ipaSymbol: string,
+): string {
+    const normalised =
+        normaliseStoredPhonemeSymbol(ipaSymbol);
+
+    const codePoints = Array
+        .from(normalised)
+        .map((symbol) =>
+            symbol.codePointAt(0)!.toString(16),
+        )
+        .join("-");
+
+    return `ipa-${codePoints}`;
+}
+
+// Ordinal comparison remains stable across locales.
+function compareText(
+    first: string,
+    second: string,
+): number {
+    return first < second
+        ? -1
+        : first > second
+            ? 1
+            : 0;
+}
+
+function comparePhonemeMetadata(
+    first: Phoneme,
+    second: Phoneme,
+): number {
+    return (
+        compareText(
+            first.grapheme,
+            second.grapheme,
+        ) ||
+        compareText(
+            first.exampleWord,
+            second.exampleWord,
+        ) ||
+        compareText(
+            first.spokenName,
+            second.spokenName,
+        )
+    );
+}
+
+function mapPhoneme(
+    record: ActivityPhonemeRecord,
+): Phoneme {
+    const ipaSymbol =
+        normaliseStoredPhonemeSymbol(
+            record.ipaSymbol,
+        );
+
+    return {
+        id: createCanonicalPhonemeId(ipaSymbol),
+        ipaSymbol,
+        grapheme: record.grapheme,
+        exampleWord: record.exampleWord,
+        spokenName: record.spokenName,
+    };
+}
+
+function orderedPhonemes(
+    word: ActivityWordRecord,
+): readonly ActivityPhonemeRecord[] {
+    const records = [...word.phonemes].sort(
+        (first, second) =>
+            first.position - second.position,
+    );
+
+    if (records.length === 0) {
+        throw new InvalidActivityContentError(
+            `Word "${word.english}" contains no phonemes.`,
+        );
+    }
+
+    records.forEach(
+        (record, expectedPosition) => {
+            if (
+                record.position !==
+                expectedPosition
+            ) {
+                throw new InvalidActivityContentError(
+                    `Word "${word.english}" must use consecutive phoneme positions starting at zero.`,
+                );
+            }
+        },
+    );
+
+    return records;
+}
+
+function deduplicatePhonemes(
+    phonemes: readonly Phoneme[],
+): readonly Phoneme[] {
+    const phonemesById =
+        new Map<string, Phoneme>();
+
+    for (const phoneme of phonemes) {
+        const existing =
+            phonemesById.get(phoneme.id);
+
+        if (
+            !existing ||
+            comparePhonemeMetadata(
+                phoneme,
+                existing,
+            ) < 0
+        ) {
+            phonemesById.set(
+                phoneme.id,
+                phoneme,
+            );
+        }
+    }
+
+    return [...phonemesById.values()].sort(
+        (first, second) =>
+            compareText(first.id, second.id),
+    );
+}
+
 export function mapWordRecordToActivityData(
     word: ActivityWordRecord,
-): ActivityWordData { 
-    const orderedPhonemes = orderPhonemeRecords(word);
+): ActivityWordData {
+    const phonemes =
+        orderedPhonemes(word).map(mapPhoneme);
+
+    const ipa =
+        normaliseIpaTranscription(word.ipa);
+
+    if (!ipa) {
+        throw new InvalidActivityContentError(
+            `Word "${word.english}" has no IPA transcription.`,
+        );
+    }
 
     return {
         word: {
             id: word.id,
             english: word.english,
-            ipa: word.ipa,
-            phonemeIds: orderedPhonemes.map((phoneme) => phoneme.id,),
+            ipa,
+            phonemeIds: phonemes.map(
+                ({ id }) => id,
+            ),
         },
-        phonemes: orderedPhonemes.map(mapPhonemeRecord),
+        phonemes:
+            deduplicatePhonemes(phonemes),
     };
 }
 
-// Converts a complete database list into serialisable activity content
 export function mapWordListRecordToActivityData(
     wordList: ActivityWordListRecord,
-): ActivityWordListData { 
+): ActivityWordListData {
     const mappedWords = wordList.words.map(
         mapWordRecordToActivityData,
     );
@@ -121,9 +232,13 @@ export function mapWordListRecordToActivityData(
         id: wordList.id,
         name: wordList.name,
         description: wordList.description,
-        words: mappedWords.map(({ word }) => word),
-        phonemes: mappedWords.flatMap(
-            ({ phonemes }) => phonemes,
+        words: mappedWords.map(
+            ({ word }) => word,
+        ),
+        phonemes: deduplicatePhonemes(
+            mappedWords.flatMap(
+                ({ phonemes }) => phonemes,
+            ),
         ),
     };
 }

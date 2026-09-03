@@ -5,11 +5,11 @@ import {
 } from "vitest";
 
 import {
+    createCanonicalPhonemeId,
+    InvalidActivityContentError,
     mapWordListRecordToActivityData,
     mapWordRecordToActivityData,
-} from "@/lib/database/activity-mappers";
-import type {
-    ActivityWordRecord,
+    type ActivityWordRecord,
 } from "@/lib/database/activity-mappers";
 
 const CHIN_RECORD = {
@@ -18,7 +18,7 @@ const CHIN_RECORD = {
     ipa: "/tʃɪn/",
     phonemes: [
         {
-            id: "phoneme-n",
+            id: "occurrence-n",
             position: 2,
             ipaSymbol: "n",
             grapheme: "N",
@@ -26,7 +26,7 @@ const CHIN_RECORD = {
             spokenName: "n",
         },
         {
-            id: "phoneme-ch",
+            id: "occurrence-ch",
             position: 0,
             ipaSymbol: "tʃ",
             grapheme: "CH",
@@ -34,7 +34,7 @@ const CHIN_RECORD = {
             spokenName: "ch",
         },
         {
-            id: "phoneme-short-i",
+            id: "occurrence-short-i",
             position: 1,
             ipaSymbol: "ɪ",
             grapheme: "I",
@@ -44,33 +44,88 @@ const CHIN_RECORD = {
     ],
 } satisfies ActivityWordRecord;
 
+interface SinglePhonemeWordOptions {
+    readonly id: string;
+    readonly ipaSymbol: string;
+    readonly grapheme: string;
+    readonly exampleWord: string;
+    readonly spokenName: string;
+}
+
+function createSinglePhonemeWord({
+    id,
+    ipaSymbol,
+    grapheme,
+    exampleWord,
+    spokenName,
+}: SinglePhonemeWordOptions): ActivityWordRecord {
+    return {
+        id,
+        english: id,
+        ipa: `/${ipaSymbol}/`,
+        phonemes: [
+            {
+                id: `occurrence-${id}`,
+                position: 0,
+                ipaSymbol,
+                grapheme,
+                exampleWord,
+                spokenName,
+            },
+        ],
+    };
+}
+
 describe("database activity mappers", () => {
-    it("maps a database word in phoneme position order", () => {
+    it("creates stable IDs from normalized code points", () => {
+        expect(
+            createCanonicalPhonemeId("ɪ"),
+        ).toBe("ipa-26a");
+
+        expect(
+            createCanonicalPhonemeId("tʃ"),
+        ).toBe("ipa-74-283");
+
+        expect(
+            createCanonicalPhonemeId(
+                " a\u0303 ",
+            ),
+        ).toBe("ipa-e3");
+
+        expect(
+            createCanonicalPhonemeId("tʃ"),
+        ).not.toBe(
+            createCanonicalPhonemeId("t͡ʃ"),
+        );
+    });
+
+    it("maps phonemes in position order without mutating the source", () => {
         const result =
-            mapWordRecordToActivityData(CHIN_RECORD);
+            mapWordRecordToActivityData(
+                CHIN_RECORD,
+            );
 
         expect(result.word).toEqual({
             id: "word-chin",
             english: "chin",
             ipa: "/tʃɪn/",
             phonemeIds: [
-                "phoneme-ch",
-                "phoneme-short-i",
-                "phoneme-n",
+                "ipa-74-283",
+                "ipa-26a",
+                "ipa-6e",
             ],
         });
 
         expect(
             result.phonemes.map(
-                ({ ipaSymbol }) => ipaSymbol,
+                ({ id }) => id,
             ),
         ).toEqual([
-            "tʃ",
-            "ɪ",
-            "n",
+            "ipa-26a",
+            "ipa-6e",
+            "ipa-74-283",
         ]);
 
-        // Mapping must not rearrange the original Prisma result.
         expect(
             CHIN_RECORD.phonemes.map(
                 ({ position }) => position,
@@ -82,24 +137,104 @@ describe("database activity mappers", () => {
         ]);
     });
 
-    it("maps a complete word list for activity use", () => {
+    it("preserves repeated word IDs but deduplicates the bank", () => {
+        const repeatedPhoneme =
+            CHIN_RECORD.phonemes[1];
+
         const result =
-            mapWordListRecordToActivityData({
-                id: "list-starter",
-                name: "Orate Starter Words",
-                description: "Starter speech content.",
-                words: [CHIN_RECORD],
+            mapWordRecordToActivityData({
+                id: "word-chch",
+                english: "ch-ch",
+                ipa: "/tʃtʃ/",
+                phonemes: [
+                    {
+                        ...repeatedPhoneme,
+                        id: "occurrence-first",
+                        position: 0,
+                    },
+                    {
+                        ...repeatedPhoneme,
+                        id: "occurrence-second",
+                        position: 1,
+                    },
+                ],
             });
 
-        expect(result).toMatchObject({
-            id: "list-starter",
-            name: "Orate Starter Words",
-            description: "Starter speech content.",
-        });
+        expect(result.word.phonemeIds).toEqual([
+            "ipa-74-283",
+            "ipa-74-283",
+        ]);
 
-        expect(result.words).toHaveLength(1);
-        expect(result.phonemes).toHaveLength(3);
-        expect(result.words[0].english).toBe("chin");
+        expect(result.phonemes).toHaveLength(1);
+        expect(result.phonemes[0].id).toBe(
+            "ipa-74-283",
+        );
+    });
+
+    it("deduplicates NFC-equivalent symbols deterministically", () => {
+        const laterMetadata =
+            createSinglePhonemeWord({
+                id: "word-later",
+                ipaSymbol: "a\u0303",
+                grapheme: "Z",
+                exampleWord: "zebra",
+                spokenName: "last",
+            });
+
+        const earlierMetadata =
+            createSinglePhonemeWord({
+                id: "word-earlier",
+                ipaSymbol: "ã",
+                grapheme: "A",
+                exampleWord: "anchor",
+                spokenName: "first",
+            });
+
+        const forward =
+            mapWordListRecordToActivityData({
+                id: "list-nasal",
+                name: "Nasal words",
+                description: null,
+                words: [
+                    laterMetadata,
+                    earlierMetadata,
+                ],
+            });
+
+        const reversed =
+            mapWordListRecordToActivityData({
+                id: "list-nasal",
+                name: "Nasal words",
+                description: null,
+                words: [
+                    earlierMetadata,
+                    laterMetadata,
+                ],
+            });
+
+        expect(
+            forward.words.map(
+                ({ phonemeIds }) =>
+                    phonemeIds[0],
+            ),
+        ).toEqual([
+            "ipa-e3",
+            "ipa-e3",
+        ]);
+
+        expect(forward.phonemes).toEqual([
+            {
+                id: "ipa-e3",
+                ipaSymbol: "ã",
+                grapheme: "A",
+                exampleWord: "anchor",
+                spokenName: "first",
+            },
+        ]);
+
+        expect(reversed.phonemes).toEqual(
+            forward.phonemes,
+        );
     });
 
     it("rejects a word without phoneme content", () => {
@@ -109,7 +244,7 @@ describe("database activity mappers", () => {
                 phonemes: [],
             }),
         ).toThrow(
-            'Word "chin" does not contain any phonemes.',
+            InvalidActivityContentError,
         );
     });
 
@@ -125,5 +260,47 @@ describe("database activity mappers", () => {
         ).toThrow(
             'Word "chin" must use consecutive phoneme positions starting at zero.',
         );
+    });
+
+    it("rejects empty normalized IPA content", () => {
+        expect(() =>
+            mapWordRecordToActivityData({
+                ...CHIN_RECORD,
+                ipa: "///",
+            }),
+        ).toThrow(
+            'Word "chin" has no IPA transcription.',
+        );
+
+        expect(() =>
+            mapWordRecordToActivityData({
+                ...CHIN_RECORD,
+                phonemes: [
+                    {
+                        ...CHIN_RECORD.phonemes[1],
+                        ipaSymbol: " /// ",
+                    },
+                ],
+            }),
+        ).toThrow(
+            "An activity phoneme must contain an IPA symbol.",
+        );
+    });
+
+    it("accepts an empty word list", () => {
+        expect(
+            mapWordListRecordToActivityData({
+                id: "list-empty",
+                name: "Empty list",
+                description: null,
+                words: [],
+            }),
+        ).toEqual({
+            id: "list-empty",
+            name: "Empty list",
+            description: null,
+            words: [],
+            phonemes: [],
+        });
     });
 });

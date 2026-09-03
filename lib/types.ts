@@ -1,7 +1,7 @@
 
 // Describes one phonetic sound and the info used to present it
 export interface Phoneme {
-    readonly id : string;        // unique ID
+    readonly id: string;        // unique ID
     readonly ipaSymbol: string;
     readonly grapheme: string;   // how the phoneme is writen in english
     readonly exampleWord: string;    // use case example
@@ -17,13 +17,34 @@ export interface PhonemeWord { // interface = schema similar to JSON
     readonly id: string;
     readonly english: string;
     readonly ipa: string;      // the IPA transcription of the entire word
-    readonly phonemeIds?: readonly string [];
+    readonly phonemeIds?: readonly string[];
 }
 
 // Describes a word which all phonemes have been recorded
-    // makes phonemeIdsrequired
+// makes phonemeIdsrequired
 export interface CompletePhonemeWord extends PhonemeWord {
     readonly phonemeIds: readonly string[];
+}
+
+// Database content serialized for activity builders.
+export interface ActivityWordListData {
+    readonly id: string;
+    readonly name: string;
+    readonly description: string | null;
+    readonly words: readonly CompletePhonemeWord[];
+    readonly phonemes: readonly Phoneme[];
+}
+
+// Resolved target and keyboard bank for one Wordle.
+export interface WordleActivityContent {
+    readonly selectedWord: CompletePhonemeWord;
+    readonly phonemes: readonly Phoneme[];
+}
+
+// Resolved words and filler bank for one Word Search.
+export interface WordSearchActivityContent {
+    readonly words: readonly CompletePhonemeWord[];
+    readonly phonemes: readonly Phoneme[];
 }
 
 // Difficulty values that will be accepted by Wordle and Word search 
@@ -59,9 +80,9 @@ export interface WordleConfig {
 }
 
 // Describes how a guessed phoneme relates to the target word. 
-    // correct = right phoneme, right pos
-    // present = right phoneme, different pos
-    // absent = either not contained in the word or the guessed phoneme has no remaining match
+// correct = right phoneme, right pos
+// present = right phoneme, different pos
+// absent = either not contained in the word or the guessed phoneme has no remaining match
 export type GuessState = "correct" | "present" | "absent";
 
 /** ~~~~~~ This is where the Word-Search feature starts ~~~~~~ */
