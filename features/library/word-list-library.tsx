@@ -1,10 +1,11 @@
 "use client";
 
-import {useEffect,useState,} from "react";
-import {WordListWorkspace,} from "@/features/library/word-list-workspace";
-import {WordListForm,} from "@/features/library/word-list-form";
-import type {WordListSummary,} from "@/features/library/types";
-import type {ApiSuccessBody,} from "@/lib/api/responses";
+import { useEffect, useState, } from "react";
+import { WordListWorkspace, } from "@/features/library/word-list-workspace";
+import { WordListForm, } from "@/features/library/word-list-form";
+import type { WordListSummary, } from "@/features/library/types";
+import type { ApiSuccessBody, } from "@/lib/api/responses";
+import { requireNoContent } from "@/lib/api/client";
 
 type LoadingState =
     | "loading"
@@ -102,6 +103,16 @@ export function WordListLibrary() {
         setActionStatus,
     ] = useState("");
 
+    const [
+        actionError,
+        setActionError,
+    ] = useState("");
+
+    const [
+        deletingWordListId,
+        setDeletingWordListId,
+    ] = useState<string | null>(null);
+
     useEffect(() => {
         const controller =
             new AbortController();
@@ -116,6 +127,36 @@ export function WordListLibrary() {
                     );
 
                 setWordLists(loadedWordLists);
+
+                setManagedWordList((current) =>
+                    current
+                        ? loadedWordLists.find(
+                            (wordList) =>
+                                wordList.id === current.id,
+                        ) ?? null
+                        : null,
+                );
+
+                setFormSelection((current) => {
+                    if (current?.mode !== "edit") {
+                        return current;
+                    }
+
+                    const refreshedWordList =
+                        loadedWordLists.find(
+                            (wordList) =>
+                                wordList.id ===
+                                current.wordList.id,
+                        );
+
+                    return refreshedWordList
+                        ? {
+                            mode: "edit",
+                            wordList: refreshedWordList,
+                        }
+                        : null;
+                });
+
                 setLoadingState("ready");
             } catch {
                 if (controller.signal.aborted) {
@@ -152,7 +193,7 @@ export function WordListLibrary() {
         );
 
         setFormSelection(null);
-
+        setActionError("");
         setActionStatus(
             `${savedWordList.name} was ${wasEditing
                 ? "updated"
@@ -165,6 +206,7 @@ export function WordListLibrary() {
     function openCreateForm() {
         setManagedWordList(null);
         setActionStatus("");
+        setActionError("");
         setFormSelection({
             mode: "create",
         });
@@ -175,6 +217,7 @@ export function WordListLibrary() {
     ) {
         setManagedWordList(null);
         setActionStatus("");
+        setActionError("");
         setFormSelection({
             mode: "edit",
             wordList,
@@ -187,6 +230,7 @@ export function WordListLibrary() {
         setFormSelection(null);
         setManagedWordList(wordList);
         setActionStatus("");
+        setActionError("");
     }
 
     // This keeps the summary card count in sync after adding a word.
@@ -214,12 +258,84 @@ export function WordListLibrary() {
                 : currentList
         ));
     }
+
+    async function handleDeleteWordList(
+        wordList: WordListSummary,
+    ) {
+        const wordLabel =
+            wordList.wordCount === 1
+                ? "word"
+                : "words";
+
+        const confirmed = window.confirm(
+            `Delete "${wordList.name}"? This will also delete ${wordList.wordCount} stored ${wordLabel}.`,
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setDeletingWordListId(wordList.id);
+        setActionStatus("");
+        setActionError("");
+
+        try {
+            const response = await fetch(
+                `/api/word-lists/${wordList.id}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Accept: "application/json",
+                    },
+                },
+            );
+
+            await requireNoContent(
+                response,
+                "The word list could not be deleted.",
+            );
+
+            setWordLists((current) =>
+                current.filter(
+                    (candidate) =>
+                        candidate.id !== wordList.id,
+                ),
+            );
+
+            setManagedWordList((current) =>
+                current?.id === wordList.id
+                    ? null
+                    : current,
+            );
+
+            setFormSelection((current) =>
+                current?.mode === "edit" &&
+                    current.wordList.id === wordList.id
+                    ? null
+                    : current,
+            );
+
+            setActionStatus(
+                `${wordList.name} was deleted.`,
+            );
+        } catch (error) {
+            setActionError(
+                error instanceof Error
+                    ? error.message
+                    : "The word list could not be deleted.",
+            );
+        } finally {
+            setDeletingWordListId(null);
+        }
+    }
+
     return (
         <section
             className="mt-12"
             aria-labelledby="word-library-heading"
             aria-busy={
-                loadingState === "loading"
+                loadingState === "loading" ||
+                deletingWordListId !== null
             }
         >
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -240,12 +356,12 @@ export function WordListLibrary() {
                     <button
                         type="button"
                         onClick={openCreateForm}
+                        disabled={deletingWordListId !== null}
                         aria-controls="word-list-form"
                         aria-expanded={
-                            formSelection?.mode ===
-                            "create"
+                            formSelection?.mode === "create"
                         }
-                        className="rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                        className="rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         New word list
                     </button>
@@ -254,13 +370,15 @@ export function WordListLibrary() {
                         type="button"
                         onClick={() => {
                             setActionStatus("");
+                            setActionError("");
                             setRefreshRequest(
                                 (currentRequest) =>
                                     currentRequest + 1,
                             );
                         }}
                         disabled={
-                            loadingState === "loading"
+                            loadingState === "loading" ||
+                            deletingWordListId !== null
                         }
                         className="rounded-lg border border-(--control-border) bg-(--surface-muted) px-4 py-2 font-semibold text-foreground hover:border-(--accent) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-wait disabled:opacity-60"
                     >
@@ -310,6 +428,13 @@ export function WordListLibrary() {
                 className="mt-4 min-h-6 text-sm text-(--muted-text)"
             >
                 {actionStatus}
+            </p>
+
+            <p
+                role={actionError ? "alert" : undefined}
+                className="min-h-6 text-sm text-(--danger)"
+            >
+                {actionError}
             </p>
 
             <p
@@ -367,6 +492,7 @@ export function WordListLibrary() {
                         (wordList) => (
                             <article
                                 key={wordList.id}
+                                aria-busy={deletingWordListId === wordList.id}
                                 className="flex flex-col rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                             >
                                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -407,7 +533,8 @@ export function WordListLibrary() {
                                         aria-expanded={
                                             managedWordList?.id === wordList.id
                                         }
-                                        className="w-fit rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+                                        disabled={deletingWordListId !== null}
+                                        className="w-fit rounded-lg bg-(--action) px-4 py-2 font-semibold text-(--action-text) hover:bg-(--action-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         Manage words
                                         <span className="sr-only">
@@ -427,9 +554,27 @@ export function WordListLibrary() {
                                             && formSelection.wordList.id
                                             === wordList.id
                                         }
-                                        className="w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)"
+                                        disabled={deletingWordListId !== null}
+                                        className="w-fit rounded-md font-semibold text-(--accent) underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         Edit list
+                                        <span className="sr-only">
+                                            {" "}
+                                            {wordList.name}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={deletingWordListId !== null}
+                                        onClick={() =>
+                                            void handleDeleteWordList(wordList)
+                                        }
+                                        className="w-fit rounded-lg border border-(--danger) bg-(--surface) px-4 py-2 font-semibold text-(--danger) transition-colors hover:bg-(--surface-muted) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:cursor-wait disabled:opacity-60"
+                                    >
+                                        {deletingWordListId === wordList.id
+                                            ? "Deleting…"
+                                            : "Delete list"}
                                         <span className="sr-only">
                                             {" "}
                                             {wordList.name}

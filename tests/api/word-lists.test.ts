@@ -251,6 +251,50 @@ describe("word-list API routes", () => {
         );
     });
 
+    it("returns 404 when deleting a missing word list", async () => {
+        databaseMocks.delete.mockRejectedValue(
+            prismaError("P2025"),
+        );
+
+        const response = await deleteWordList(
+            new Request(
+                `http://localhost/api/word-lists/${WORD_LIST_RECORD.id}`,
+                {
+                    method: "DELETE",
+                },
+            ),
+            listContext(),
+        );
+
+        await expectApiError(
+            response,
+            404,
+            "WORD_LIST_NOT_FOUND",
+        );
+    });
+
+    it("rejects an invalid delete UUID before querying", async () => {
+        const response = await deleteWordList(
+            new Request(
+                "http://localhost/api/word-lists/invalid",
+                {
+                    method: "DELETE",
+                },
+            ),
+            listContext("invalid"),
+        );
+
+        await expectApiError(
+            response,
+            400,
+            "VALIDATION_ERROR",
+        );
+
+        expect(
+            databaseMocks.getDatabase,
+        ).not.toHaveBeenCalled();
+    });
+
     it("rejects an invalid list UUID", async () => {
         const response = await getWordList(
             new Request(
