@@ -1,16 +1,14 @@
 /**
  * Deterministic Word Search generation.
  *
- * Given the same configuration and word collection, this function always
+ * Given the same configuration and activity content, this function always
  * returns the same grid. This allows the React preview and downloaded HTML
  * activity to generate matching puzzles.
  */
-import { PHONEMES } from "@/lib/phoneme-definitions";
-import { WORD_SEARCH_WORDS } from "@/lib/phonemes";
 import type {
-    CompletePhonemeWord,
     Difficulty,
     PlacedWord,
+    WordSearchActivityContent,
     WordSearchConfig,
     WordSearchPuzzle,
 } from "@/lib/types";
@@ -66,6 +64,76 @@ const GRID_SIZES: Readonly<Record<Difficulty, number>> = {
     challenging: 12,
 };
 
+// Identifies content and placement failures the builder can explain.
+export class WordSearchGenerationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "WordSearchGenerationError";
+    }
+}
+
+// Rejects invalid content before creating the grid or using the Pseudo RNG.
+function validateActivityContent(
+    content: WordSearchActivityContent,
+    gridSize: number,
+): void {
+    if (content.words.length === 0) {
+        throw new WordSearchGenerationError(
+            "Word Search requires at least one word.",
+        );
+    }
+
+    if (content.phonemes.length === 0) {
+        throw new WordSearchGenerationError(
+            "Word Search requires at least one phoneme.",
+        );
+    }
+
+    // IDs control grid overlap and learner progress tracking.
+    const phonemeIds = new Set<string>();
+    const wordIds = new Set<string>();
+
+    for (const phoneme of content.phonemes) {
+        if (phonemeIds.has(phoneme.id)) {
+            throw new WordSearchGenerationError(
+                `Duplicate phoneme ID: ${phoneme.id}.`,
+            );
+        }
+
+        phonemeIds.add(phoneme.id);
+    }
+
+    for (const word of content.words) {
+        if (wordIds.has(word.id)) {
+            throw new WordSearchGenerationError(
+                `Duplicate word ID: ${word.id}.`,
+            );
+        }
+
+        wordIds.add(word.id);
+
+        if (word.phonemeIds.length === 0) {
+            throw new WordSearchGenerationError(
+                `Word "${word.english}" has no phonemes.`,
+            );
+        }
+
+        if (word.phonemeIds.length > gridSize) {
+            throw new WordSearchGenerationError(
+                `Word "${word.english}" is too long for this grid.`,
+            );
+        }
+
+        for (const phonemeId of word.phonemeIds) {
+            if (!phonemeIds.has(phonemeId)) {
+                throw new WordSearchGenerationError(
+                    `Word "${word.english}" uses unknown phoneme "${phonemeId}".`,
+                );
+            }
+        }
+    }
+}
+
 /**
  * Creates a predictable pseudo-random number generator.
  * Unlike Math.random(), this generator produces the same number sequence 
@@ -108,12 +176,21 @@ function randomIndex(
  */
 export function generateWordSearch(
     config: WordSearchConfig,
-    words: readonly CompletePhonemeWord[] = WORD_SEARCH_WORDS,
+    content: WordSearchActivityContent,
 ): WordSearchPuzzle {
-    const gridSize = GRID_SIZES[config.difficulty];
-    const allowedDirections = DIRECTIONS[config.difficulty];
-    const random = createSeededRandom(config.seed);
+    const gridSize =
+        GRID_SIZES[config.difficulty];
 
+    validateActivityContent(
+        content,
+        gridSize,
+    );
+
+    const allowedDirections =
+        DIRECTIONS[config.difficulty];
+
+    const random =
+        createSeededRandom(config.seed);
     /**
      * The grid begins with null values because no phonemes have been placed.
      * Array.from creates a separate array for every row.
@@ -125,8 +202,8 @@ export function generateWordSearch(
 
     const placements: PlacedWord[] = [];
 
-    // Attempt to place every word in the fixed word collection.
-    for (const word of words) {
+    // Attempt to place every word from the selected activity content.
+    for (const word of content.words) {
         let wordWasPlaced = false;
 
         /**
@@ -141,7 +218,7 @@ export function generateWordSearch(
         ) {
             const direction =
                 allowedDirections[
-                    randomIndex(random, allowedDirections.length)
+                randomIndex(random, allowedDirections.length)
                 ];
 
             const [rowChange, columnChange] = direction;
@@ -228,8 +305,8 @@ export function generateWordSearch(
         }
 
         if (!wordWasPlaced) {
-            throw new Error(
-                `Unable to place ${word.id} in the Word Search grid.`,
+            throw new WordSearchGenerationError(
+                `Unable to place "${word.english}". Use fewer or shorter words, choose a larger difficulty, or regenerate with another seed.`,
             );
         }
     }
@@ -240,8 +317,8 @@ export function generateWordSearch(
      * We use the same seeded generator, so the filler cells are also
      * deterministic.
      */
-    const fillerPhonemeIds = PHONEMES.map(
-        (phoneme) => phoneme.id,
+    const fillerPhonemeIds = content.phonemes.map(
+        ({ id }) => id,
     );
 
     const completedGrid = grid.map((row) =>
@@ -249,7 +326,7 @@ export function generateWordSearch(
             (cell) =>
                 cell ??
                 fillerPhonemeIds[
-                    randomIndex(random, fillerPhonemeIds.length)
+                randomIndex(random, fillerPhonemeIds.length)
                 ],
         ),
     );

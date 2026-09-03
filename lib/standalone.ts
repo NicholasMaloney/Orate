@@ -7,7 +7,7 @@
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
 import { PHONEMES } from "@/lib/phoneme-definitions";
 import { getWordleWord, WORD_SEARCH_WORDS } from "@/lib/phonemes";
-import type { ResolvedTheme, WordleConfig, WordSearchConfig } from "@/lib/types";
+import type { ResolvedTheme, WordleConfig, WordSearchActivityContent, WordSearchConfig } from "@/lib/types";
 import { generateWordSearch } from "@/lib/word-search";
 
 function serializeForScript(value: unknown): string {
@@ -1141,24 +1141,34 @@ const WORD_SEARCH_STYLES = `
 `;
 
 export function buildStandaloneWordSearchHtml(
-    config: WordSearchConfig,
-    theme: ResolvedTheme,
+  config: WordSearchConfig,
+  theme: ResolvedTheme,
 ): string {
-    const puzzle = generateWordSearch(config);
-    const gridSize = puzzle.grid.length;
+  // Keeps the current builder working until it loads database content.
+  const content = {
+    words: WORD_SEARCH_WORDS,
+    phonemes: PHONEMES,
+  } satisfies WordSearchActivityContent;
 
-    /**
-     * These are the only data values needed by the browser activity.
-     * serializeForScript converts this object into script-safe JSON.
-     */
-    const data = {
-        puzzle,
-        hintsEnabled: config.hintsEnabled,
-        phonemes: PHONEMES,
-        words: WORD_SEARCH_WORDS,
-    };
+  const puzzle = generateWordSearch(
+    config,
+    content,
+  );
 
-    const body = `
+  const gridSize = puzzle.grid.length;
+
+  /**
+   * These are the only data values needed by the browser activity.
+   * serializeForScript converts this object into script-safe JSON.
+   */
+  const data = {
+    puzzle,
+    hintsEnabled: config.hintsEnabled,
+    phonemes: content.phonemes,
+    words: content.words,
+  };
+
+  const body = `
     <section class="panel" aria-labelledby="activity-title">
       <header class="panel-header">
         <p class="eyebrow">Phoneme Word Search</p>
@@ -1173,7 +1183,7 @@ export function buildStandaloneWordSearchHtml(
       <div class="game">
         <div class="status-row">
           <p class="status" id="progress">
-            0 of ${WORD_SEARCH_WORDS.length} words found
+            0 of ${content.words.length} words found
           </p>
 
           <button class="restart" id="restart" type="button">
@@ -1211,7 +1221,7 @@ export function buildStandaloneWordSearchHtml(
       </div>
     </section>`;
 
-    const script = `
+  const script = `
     const data = ${serializeForScript(data)};
 
     const phonemeById = new Map(
@@ -1558,12 +1568,12 @@ export function buildStandaloneWordSearchHtml(
     renderWordList();
   `;
 
-    return documentShell({
-        title:
-            `Orate Phoneme Word Search - ${config.difficulty}`,
-        theme,
-        body,
-        script,
-        gameStyles: WORD_SEARCH_STYLES,
-    });
+  return documentShell({
+    title:
+      `Orate Phoneme Word Search - ${config.difficulty}`,
+    theme,
+    body,
+    script,
+    gameStyles: WORD_SEARCH_STYLES,
+  });
 }
