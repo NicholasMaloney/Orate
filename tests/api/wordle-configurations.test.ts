@@ -1,5 +1,4 @@
 import { ActivityDifficulty } from "@/build/generated/prisma/client";
-import { GET as getWordleConfiguration } from "@/app/api/wordle-configurations/[configurationId]/route";
 import { GET as getWordleConfigurations, POST as createWordleConfiguration, } from "@/app/api/wordle-configurations/route";
 import { WORDLE_CONFIGURATION_SELECT } from "@/lib/database/selections";
 import {
@@ -17,12 +16,19 @@ import {
     it,
     vi,
 } from "vitest";
+import {
+    DELETE as deleteWordleConfiguration,
+    GET as getWordleConfiguration,
+    PATCH as updateWordleConfiguration,
+} from "@/app/api/wordle-configurations/[configurationId]/route";
 
 const databaseMocks = vi.hoisted(() => ({
     getDatabase: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
     findUnique: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
 }));
 
 vi.mock("@/lib/database/client", () => ({ getDatabase: databaseMocks.getDatabase, }));
@@ -87,6 +93,10 @@ describe("Wordle configuration API routes", () => {
                         databaseMocks.create,
                     findUnique:
                         databaseMocks.findUnique,
+                    update:
+                        databaseMocks.update,
+                    delete:
+                        databaseMocks.delete,
                 },
             });
     });
@@ -359,6 +369,188 @@ describe("Wordle configuration API routes", () => {
         expect(
             databaseMocks.findUnique,
         ).not.toHaveBeenCalled();
+    });
+
+        it("updates only supplied configuration fields", async () => {
+        databaseMocks.update
+            .mockResolvedValue({
+                ...WORDLE_CONFIGURATION_RECORD,
+                difficulty:
+                    ActivityDifficulty.EASY,
+                hintsEnabled: false,
+            });
+
+        const response =
+            await updateWordleConfiguration(
+                jsonRequest(
+                    `/api/wordle-configurations/${CONFIGURATION_ID}`,
+                    "PATCH",
+                    {
+                        difficulty: "easy",
+                        hintsEnabled: false,
+                    },
+                ),
+                configurationContext(),
+            );
+
+        expect(response.status).toBe(200);
+
+        expect(
+            databaseMocks.update,
+        ).toHaveBeenCalledWith({
+            where: {
+                id: CONFIGURATION_ID,
+            },
+            data: {
+                hintsEnabled: false,
+                difficulty:
+                    ActivityDifficulty.EASY,
+            },
+            select:
+                WORDLE_CONFIGURATION_SELECT,
+        });
+
+        await expect(
+            response.json(),
+        ).resolves.toMatchObject({
+            data: {
+                id: CONFIGURATION_ID,
+                difficulty: "easy",
+                hintsEnabled: false,
+            },
+        });
+    });
+
+    it("rejects an empty configuration update", async () => {
+        const response =
+            await updateWordleConfiguration(
+                jsonRequest(
+                    `/api/wordle-configurations/${CONFIGURATION_ID}`,
+                    "PATCH",
+                    {},
+                ),
+                configurationContext(),
+            );
+
+        await expectApiError(
+            response,
+            400,
+            "VALIDATION_ERROR",
+        );
+
+        expect(
+            databaseMocks.update,
+        ).not.toHaveBeenCalled();
+
+        expect(
+            databaseMocks.getDatabase,
+        ).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [
+            "P2025",
+            404,
+            "WORDLE_CONFIGURATION_NOT_FOUND",
+        ],
+        [
+            "P2002",
+            409,
+            "WORDLE_CONFIGURATION_NAME_CONFLICT",
+        ],
+        [
+            "P2003",
+            404,
+            "WORD_NOT_FOUND",
+        ],
+    ] as const)(
+        "maps Wordle update error %s",
+        async (
+            prismaCode,
+            status,
+            apiCode,
+        ) => {
+            databaseMocks.update
+                .mockRejectedValue(
+                    prismaError(prismaCode),
+                );
+
+            const response =
+                await updateWordleConfiguration(
+                    jsonRequest(
+                        `/api/wordle-configurations/${CONFIGURATION_ID}`,
+                        "PATCH",
+                        {
+                            name:
+                                "Updated Wordle",
+                            wordId: WORD_ID,
+                        },
+                    ),
+                    configurationContext(),
+                );
+
+            await expectApiError(
+                response,
+                status,
+                apiCode,
+            );
+        },
+    );
+
+        it("deletes a Wordle configuration", async () => {
+        databaseMocks.delete
+            .mockResolvedValue(
+                WORDLE_CONFIGURATION_RECORD,
+            );
+
+        const response =
+            await deleteWordleConfiguration(
+                new Request(
+                    `http://localhost/api/wordle-configurations/${CONFIGURATION_ID}`,
+                    {
+                        method: "DELETE",
+                    },
+                ),
+                configurationContext(),
+            );
+
+        expect(response.status).toBe(204);
+
+        await expect(
+            response.text(),
+        ).resolves.toBe("");
+
+        expect(
+            databaseMocks.delete,
+        ).toHaveBeenCalledWith({
+            where: {
+                id: CONFIGURATION_ID,
+            },
+        });
+    });
+
+    it("returns 404 when deleting a missing configuration", async () => {
+        databaseMocks.delete
+            .mockRejectedValue(
+                prismaError("P2025"),
+            );
+
+        const response =
+            await deleteWordleConfiguration(
+                new Request(
+                    `http://localhost/api/wordle-configurations/${CONFIGURATION_ID}`,
+                    {
+                        method: "DELETE",
+                    },
+                ),
+                configurationContext(),
+            );
+
+        await expectApiError(
+            response,
+            404,
+            "WORDLE_CONFIGURATION_NOT_FOUND",
+        );
     });
 
 });
