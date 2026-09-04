@@ -1,6 +1,6 @@
-// Adds the Wordle configuration collection route 
-    // List saved configurations: GET /api/wordle-configurations 
-    // Validate and create one configuration: POST /api/wordle-configurations
+// Adds the Wordle configuration collection route
+// List saved configurations: GET /api/wordle-configurations
+// // Validate and create one configuration: POST /api/wordle-configurations
 import { errorResponse, successResponse } from "@/lib/api/responses";
 import { createWordleConfigurationSchema, parseJsonRequest } from "@/lib/api/validation";
 import { mapWordleConfiguration, toDatabaseDifficulty } from "@/lib/database/configuration-mappers";

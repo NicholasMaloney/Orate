@@ -473,23 +473,18 @@ describe("Word Search configuration API routes", () => {
             databaseMocks.getDatabase,
         ).not.toHaveBeenCalled();
     });
-        /** 
-         * P2025: configuration does not exist.
-         * P2002: requested name is already used.
-         * P2003: requested word list does not exist. 
-         * */
         it.each([
-        [
+        [ // P2025: configuration does not exist.
             "P2025",
             404,
             "WORD_SEARCH_CONFIGURATION_NOT_FOUND",
         ],
-        [
+        [ // P2002: requested name is already used.
             "P2002",
             409,
             "WORD_SEARCH_CONFIGURATION_NAME_CONFLICT",
         ],
-        [
+        [ // P2003: requested word list does not exist.
             "P2003",
             404,
             "WORD_LIST_NOT_FOUND",

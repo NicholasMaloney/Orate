@@ -1,4 +1,4 @@
-// Quick note for future me: 
+// Quick note for future me:
 // Word Search configuration collection:
     // Sorted saved configurations: GET/api/word-search-configurations
     // Validated configuration with 201: POST/api/word-search-configurations
