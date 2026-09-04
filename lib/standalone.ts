@@ -5,16 +5,36 @@
  * containing its own markup, styles, data, and plain JavaScript.
  */
 import { DIFFICULTY_DETAILS } from "@/lib/difficulty";
-import { PHONEMES } from "@/lib/phoneme-definitions";
-import { getWordleWord, WORD_SEARCH_WORDS } from "@/lib/phonemes";
-import type { ResolvedTheme, WordleConfig, WordSearchConfig } from "@/lib/types";
+import type {
+  ResolvedTheme,
+  WordleActivityContent,
+  WordleConfig,
+  WordSearchActivityContent,
+  WordSearchConfig,
+} from "@/lib/types";
 import { generateWordSearch } from "@/lib/word-search";
+import { scoreGuess } from "@/lib/wordle-scoring";
 
+// Prevents serialized data from ending its script element.
 function serializeForScript(value: unknown): string {
   return JSON.stringify(value)
     .replaceAll("<", "\\u003c")
     .replaceAll(">", "\\u003e")
-    .replaceAll("&", "\\u0026");
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028") // Unicode line and paragraph separators
+    .replaceAll("\u2029", "\\u2029"); // Escaping them avoids separator characters being inside generated JavaScript.
+}
+
+// Escapes dynamic text placed directly inside HTML.
+function escapeHtmlText(value: string): string {
+  return value.replace(
+    /[&<>]/g,
+    (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+    })[character]!,
+  );
 }
 
 function documentShell({
@@ -36,7 +56,7 @@ function documentShell({
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="${theme}">
-  <title>${title}</title>
+  <title>${escapeHtmlText(title)}</title>
   <style>
     :root {
       --background: #f3f7fb;
@@ -419,10 +439,34 @@ const WORDLE_STYLES = `
   }
 `;
 
-export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedTheme,): string {
-  const selectedWord = getWordleWord(config.wordId);
-  const maximumAttempts =
-    DIFFICULTY_DETAILS[config.difficulty].attempts;
+export function buildStandaloneWordleHtml(
+  config: WordleConfig,
+  content: WordleActivityContent,
+  theme: ResolvedTheme,
+): string {
+  const selectedWord = content.selectedWord;
+
+  // The supplied content must belong to the selected configuration.
+  if (selectedWord.id !== config.wordId) {
+    throw new Error(
+      "Wordle content does not match the selected word.",
+    );
+  }
+
+  const availablePhonemeIds = new Set(
+    content.phonemes.map(({ id }) => id),
+  );
+
+  // Every target sound must exist in the keyboard bank.
+  for (const phonemeId of selectedWord.phonemeIds) {
+    if (!availablePhonemeIds.has(phonemeId)) {
+      throw new Error(
+        `Wordle target uses unknown phoneme "${phonemeId}".`,
+      );
+    }
+  }
+
+  const maximumAttempts = DIFFICULTY_DETAILS[config.difficulty].attempts;
   const phonemeCount = selectedWord.phonemeIds.length;
 
   const data = {
@@ -430,7 +474,7 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
     maximumAttempts,
     phonemeCount,
     hintsEnabled: config.hintsEnabled,
-    phonemes: PHONEMES,
+    phonemes: content.phonemes,
   };
 
   const initialStatusMessage =
@@ -505,6 +549,10 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
 
   const script = `
     const data = ${serializeForScript(data)};
+    
+    // Reuses the same scoring algorithm covered by unit tests.
+    const scoreGuess = (${scoreGuess.toString()});
+    
     const phonemeById = new Map(
       data.phonemes.map((phoneme) => [phoneme.id, phoneme])
     );
@@ -523,47 +571,6 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
     const announcement =
       document.getElementById("announcement");
 
-    function scoreGuess(guess, targetPhonemeIds) {
-      if (guess.length !== targetPhonemeIds.length) {
-        throw new Error(
-          "A Wordle guess must contain the same number of phonemes as the target."
-        );
-      }
-
-      const results = Array.from(
-        { length: guess.length },
-        () => "absent"
-      );
-
-      const remainingTargetPhonemeIds =
-        targetPhonemeIds.slice();
-
-      guess.forEach((phonemeId, position) => {
-        if (phonemeId === targetPhonemeIds[position]) {
-          results[position] = "correct";
-          remainingTargetPhonemeIds[position] = null;
-        }
-      });
-
-      guess.forEach((phonemeId, position) => {
-        if (results[position] === "correct") {
-          return;
-        }
-
-        const matchingTargetPhonemePosition =
-          remainingTargetPhonemeIds.indexOf(phonemeId);
-
-        if (matchingTargetPhonemePosition !== -1) {
-          results[position] = "present";
-          remainingTargetPhonemeIds[
-            matchingTargetPhonemePosition
-          ] = null;
-        }
-      });
-
-      return results;
-    }
-
     function setStatusMessage(text, tone) {
       statusMessageElement.textContent = text;
       statusMessageElement.dataset.tone = tone || "";
@@ -571,7 +578,7 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
     }
 
     function renderBoard() {
-      board.innerHTML = "";
+      board.replaceChildren(); // replaceChildren() clears existing DOM nodes without invoking the HTML parser.
 
       for (
         let rowIndex = 0;
@@ -649,18 +656,29 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
               absent: "×",
             };
 
-            tile.innerHTML =
-              "<span>/" +
-              phoneme.ipaSymbol +
-              "/</span>" +
-              (
-                guessState
-                  ? '<small aria-hidden="true">' +
-                    stateMarks[guessState] +
-                    "</small>"
-                  : ""
+            // textContent displays stored IPA without parsing markup.
+            const ipaLabel =
+              document.createElement("span");
+
+            ipaLabel.textContent =
+              "/" + phoneme.ipaSymbol + "/";
+
+            tile.appendChild(ipaLabel);
+
+            if (guessState) {
+              const stateMark =
+                document.createElement("small");
+
+              stateMark.setAttribute(
+                "aria-hidden",
+                "true"
               );
 
+              stateMark.textContent =
+                stateMarks[guessState];
+
+              tile.appendChild(stateMark);
+            }
             const resultDescription =
               guessState
                 ? ", " + stateLabels[guessState]
@@ -699,8 +717,9 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
       }
     }
 
+    // Dynamic IPA, grapheme, example word, spoken name, and tooltip text now enter the DOM through safe properties.
     function renderKeyboard() {
-      keyboard.innerHTML = "";
+      keyboard.replaceChildren();
 
       data.phonemes.forEach((phoneme) => {
         const button =
@@ -708,13 +727,21 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
 
         button.type = "button";
         button.className = "key";
+
         button.setAttribute(
           "aria-label",
           "Add " + phoneme.spokenName + " sound"
         );
 
-        let letters = "";
-        let help = "";
+        // DOM text setters keep stored content out of the HTML parser.
+        const ipaLabel =
+          document.createElement("span");
+
+        ipaLabel.className = "ipa";
+        ipaLabel.textContent =
+          "/" + phoneme.ipaSymbol + "/";
+
+        button.appendChild(ipaLabel);
 
         if (data.hintsEnabled) {
           const hint =
@@ -727,53 +754,62 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
 
           button.title = hint;
           button.dataset.hint = hint;
+
           button.setAttribute(
             "aria-describedby",
             tooltipId
           );
 
-          letters =
-            '<span class="letters">' +
-            phoneme.grapheme +
-            "</span>";
+          const letters =
+            document.createElement("span");
 
-          help =
-            '<span class="sr-only" role="tooltip" id="' +
-            tooltipId +
-            '">' +
-            hint +
-            "</span>";
+          letters.className = "letters";
+          letters.textContent = phoneme.grapheme;
+
+          const help =
+            document.createElement("span");
+
+          help.className = "sr-only";
+          help.id = tooltipId;
+          help.setAttribute(
+            "role",
+            "tooltip"
+          );
+          help.textContent = hint;
+
+          button.append(letters, help);
 
           button.addEventListener(
             "mouseenter",
-            () => delete button.dataset.tooltipHidden
+            () =>
+              delete button.dataset
+                .tooltipHidden
           );
 
           button.addEventListener(
             "focus",
-            () => delete button.dataset.tooltipHidden
+            () =>
+              delete button.dataset
+                .tooltipHidden
           );
 
           button.addEventListener(
             "keydown",
             (event) => {
               if (event.key === "Escape") {
-                button.dataset.tooltipHidden = "true";
+                button.dataset.tooltipHidden =
+                  "true";
               }
             }
           );
         }
 
-        button.innerHTML =
-          '<span class="ipa">/' +
-          phoneme.ipaSymbol +
-          "/</span>" +
-          letters +
-          help;
-
         button.addEventListener(
           "click",
-          () => handlePhonemeInput(phoneme.id)
+          () =>
+            handlePhonemeInput(
+              phoneme.id
+            )
         );
 
         keyboard.appendChild(button);
@@ -786,6 +822,7 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
       deleteButton.className =
         "key action secondary";
       deleteButton.textContent = "Delete";
+
       deleteButton.addEventListener(
         "click",
         handleDelete
@@ -797,8 +834,11 @@ export function buildStandaloneWordleHtml(config: WordleConfig, theme: ResolvedT
         document.createElement("button");
 
       submitButton.type = "button";
-      submitButton.className = "key action";
-      submitButton.textContent = "Submit guess";
+      submitButton.className =
+        "key action";
+      submitButton.textContent =
+        "Submit guess";
+
       submitButton.addEventListener(
         "click",
         handleSubmit
@@ -1141,24 +1181,29 @@ const WORD_SEARCH_STYLES = `
 `;
 
 export function buildStandaloneWordSearchHtml(
-    config: WordSearchConfig,
-    theme: ResolvedTheme,
+  config: WordSearchConfig,
+  content: WordSearchActivityContent,
+  theme: ResolvedTheme,
 ): string {
-    const puzzle = generateWordSearch(config);
-    const gridSize = puzzle.grid.length;
+  const puzzle = generateWordSearch(
+    config,
+    content,
+  );
 
-    /**
-     * These are the only data values needed by the browser activity.
-     * serializeForScript converts this object into script-safe JSON.
-     */
-    const data = {
-        puzzle,
-        hintsEnabled: config.hintsEnabled,
-        phonemes: PHONEMES,
-        words: WORD_SEARCH_WORDS,
-    };
+  const gridSize = puzzle.grid.length;
 
-    const body = `
+  /**
+   * These are the only data values needed by the browser activity.
+   * serializeForScript converts this object into script-safe JSON.
+   */
+  const data = {
+    puzzle,
+    hintsEnabled: config.hintsEnabled,
+    phonemes: content.phonemes,
+    words: content.words,
+  };
+
+  const body = `
     <section class="panel" aria-labelledby="activity-title">
       <header class="panel-header">
         <p class="eyebrow">Phoneme Word Search</p>
@@ -1173,7 +1218,7 @@ export function buildStandaloneWordSearchHtml(
       <div class="game">
         <div class="status-row">
           <p class="status" id="progress">
-            0 of ${WORD_SEARCH_WORDS.length} words found
+            0 of ${content.words.length} words found
           </p>
 
           <button class="restart" id="restart" type="button">
@@ -1211,7 +1256,7 @@ export function buildStandaloneWordSearchHtml(
       </div>
     </section>`;
 
-    const script = `
+  const script = `
     const data = ${serializeForScript(data)};
 
     const phonemeById = new Map(
@@ -1363,10 +1408,13 @@ export function buildStandaloneWordSearchHtml(
                   )
               );
 
-              button.title =
-                phoneme.grapheme +
-                " as in " +
-                phoneme.exampleWord;
+              // Hints-off activities expose no spelling tooltip.
+              if (data.hintsEnabled) {
+                button.title =
+                  phoneme.grapheme +
+                  " as in " +
+                  phoneme.exampleWord;
+              }
 
               button.addEventListener(
                 "click",
@@ -1439,8 +1487,75 @@ export function buildStandaloneWordSearchHtml(
         " words found";
     }
 
+    // Filters out already completed words before matching the selected phoneme start & end points
+      // If two words are placed on the same line, selecting that line once completes the first word, and selecting it again completes the second.
+    function findUnfoundPlacement(start, end) {
+      return data.puzzle.placements.find(
+        (placement) =>
+          !foundWordIds.has(placement.wordId) &&
+          placementMatchesEndpoints(
+            placement,
+            start,
+            end
+          )
+      );
+    }
+
+    // Both one-cell and line selections use the same completion flow.
+    // Centralises progress updates, feedback, and rerendering.
+    function completePlacement(placement) {
+      foundWordIds.add(placement.wordId);
+
+      const matchedWord =
+        wordById.get(placement.wordId);
+
+      if (foundWordIds.size === data.words.length) {
+        setStatusMessage(
+          "Well done! You found every phoneme word.",
+          "success"
+        );
+      } else if (matchedWord) {
+        setStatusMessage(
+          "Found " +
+            matchedWord.ipa +
+            (
+              data.hintsEnabled
+                ? " - " + matchedWord.english
+                : ""
+            ) +
+            ".",
+          "success"
+        );
+      } else {
+        setStatusMessage(
+          "Word found!",
+          "success"
+        );
+      }
+
+      renderGrid();
+      renderWordList();
+    }
+
     function selectCell(coordinate) {
       if (selectionStart === null) {
+        // A one-phoneme word is completed with one click.
+        const singleCellPlacement =
+          data.puzzle.placements.find(
+            (placement) =>
+              placement.coordinates.length === 1 &&
+              !foundWordIds.has(placement.wordId) &&
+              coordinatesAreEqual(
+                placement.coordinates[0],
+                coordinate
+              )
+          );
+
+        if (singleCellPlacement) {
+          completePlacement(singleCellPlacement);
+          return;
+        }
+
         selectionStart = coordinate;
 
         setStatusMessage(
@@ -1467,69 +1582,38 @@ export function buildStandaloneWordSearchHtml(
         return;
       }
 
+      const start = selectionStart;
+      selectionStart = null;
+
       const matchingPlacement =
-        data.puzzle.placements.find(
+        findUnfoundPlacement(
+          start,
+          coordinate
+        );
+
+      if (matchingPlacement) {
+        completePlacement(matchingPlacement);
+        return;
+      }
+
+      // Warn only after every matching placement has been found.
+      const alreadyFound =
+        data.puzzle.placements.some(
           (placement) =>
+            foundWordIds.has(placement.wordId) &&
             placementMatchesEndpoints(
               placement,
-              selectionStart,
+              start,
               coordinate
             )
         );
 
-      selectionStart = null;
-
-      if (!matchingPlacement) {
-        setStatusMessage(
-          "That line is not one of the target words. Try again.",
-          "warning"
-        );
-      } else if (
-        foundWordIds.has(
-          matchingPlacement.wordId
-        )
-      ) {
-        setStatusMessage(
-          "You have already found that word. Choose another.",
-          "warning"
-        );
-      } else {
-        foundWordIds.add(
-          matchingPlacement.wordId
-        );
-
-        const matchedWord =
-          wordById.get(
-            matchingPlacement.wordId
-          );
-
-        if (
-          foundWordIds.size ===
-          data.words.length
-        ) {
-          setStatusMessage(
-            "Well done! You found every phoneme word.",
-            "success"
-          );
-        } else if (matchedWord) {
-          setStatusMessage(
-            "Found " +
-              matchedWord.ipa +
-              (
-                data.hintsEnabled
-                  ? " - " + matchedWord.english
-                  : ""
-              ) +
-              ".",
-            "success"
-          );
-        } else {
-          setStatusMessage(
-            "Word found!",
-            "success"
-          );
-        }
-      }
+      setStatusMessage(
+        alreadyFound
+          ? "You have already found that word. Choose another."
+          : "That line is not one of the target words. Try again.",
+        "warning"
+      );
 
       renderGrid();
       renderWordList();
@@ -1558,12 +1642,12 @@ export function buildStandaloneWordSearchHtml(
     renderWordList();
   `;
 
-    return documentShell({
-        title:
-            `Orate Phoneme Word Search - ${config.difficulty}`,
-        theme,
-        body,
-        script,
-        gameStyles: WORD_SEARCH_STYLES,
-    });
+  return documentShell({
+    title:
+      `Orate Phoneme Word Search - ${config.difficulty}`,
+    theme,
+    body,
+    script,
+    gameStyles: WORD_SEARCH_STYLES,
+  });
 }

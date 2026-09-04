@@ -1,15 +1,11 @@
-import {
-    describe,
-    expect,
-    it,
-} from "vitest";
-
-import {
-    buildStandaloneWordleHtml,
-    buildStandaloneWordSearchHtml,
-} from "@/lib/standalone";
+import { describe, expect, it } from "vitest";
+import { PHONEMES } from "@/lib/phoneme-definitions";
+import { getWordleWord, WORD_SEARCH_WORDS } from "@/lib/phonemes";
+import { buildStandaloneWordleHtml, buildStandaloneWordSearchHtml } from "@/lib/standalone";
 import type {
+    WordleActivityContent,
     WordleConfig,
+    WordSearchActivityContent,
     WordSearchConfig,
 } from "@/lib/types";
 
@@ -26,6 +22,19 @@ const WORD_SEARCH_CONFIG: WordSearchConfig = {
     hintsEnabled: true,
 };
 
+// Static fixtures keep theme tests independent from the database.
+const WORDLE_CONTENT = {
+    selectedWord: getWordleWord(
+        WORDLE_CONFIG.wordId,
+    ),
+    phonemes: PHONEMES,
+} satisfies WordleActivityContent;
+
+const WORD_SEARCH_CONTENT = {
+    words: WORD_SEARCH_WORDS,
+    phonemes: PHONEMES,
+} satisfies WordSearchActivityContent;
+
 describe("standalone activity themes", () => {
     it.each([
         "light",
@@ -36,6 +45,7 @@ describe("standalone activity themes", () => {
             const html =
                 buildStandaloneWordleHtml(
                     WORDLE_CONFIG,
+                    WORDLE_CONTENT,
                     theme,
                 );
 
@@ -58,6 +68,7 @@ describe("standalone activity themes", () => {
             const html =
                 buildStandaloneWordSearchHtml(
                     WORD_SEARCH_CONFIG,
+                    WORD_SEARCH_CONTENT,
                     theme,
                 );
 
