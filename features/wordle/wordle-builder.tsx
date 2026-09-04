@@ -423,7 +423,7 @@ export function WordleBuilder() {
                         <select
                             id="target-word"
                             name="targetWord"
-                            value={selectedWord?.id ?? ""} // On first load wordId is empty, but selectWord falls back to the first database word 
+                            value={selectedWord?.id ?? ""} // On first load wordId is empty, but selectWord falls back to the first database word
                             disabled={
                                 !activeContent ||
                                 activeContent.words
