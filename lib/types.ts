@@ -79,6 +79,24 @@ export interface WordleConfig {
     readonly hintsEnabled: boolean;
 }
 
+// Wordle Config Data Transfer Object (DTO)
+// Public JSON returned for a saved Wordle configuration.
+export interface WordleConfigurationRecord {
+    readonly id: string;
+    readonly name: string;
+    readonly wordId: string;
+    readonly difficulty: Difficulty;
+    readonly hintsEnabled: boolean;
+    readonly createdAt: string;
+    readonly updatedAt: string;
+    readonly word: {
+        readonly id: string;
+        readonly wordListId: string;
+        readonly english: string;
+        readonly ipa: string;
+    };
+}
+
 // Describes how a guessed phoneme relates to the target word. 
 // correct = right phoneme, right pos
 // present = right phoneme, different pos
@@ -92,6 +110,25 @@ export interface WordSearchConfig {
     readonly difficulty: Difficulty;
     readonly seed: number;
     readonly hintsEnabled: boolean;
+}
+
+// Word Search Config - Data Transfer Object (DTO)
+// Public JSON returned for a saved Word Search configuration.
+export interface WordSearchConfigurationRecord {
+    readonly id: string;
+    readonly name: string;
+    readonly wordListId: string;
+    readonly difficulty: Difficulty;
+    readonly seed: number;
+    readonly hintsEnabled: boolean;
+    readonly createdAt: string;
+    readonly updatedAt: string;
+    readonly wordList: {
+        readonly id: string;
+        readonly name: string;
+        readonly description: string | null;
+        readonly wordCount: number;
+    };
 }
 
 // Identifies one cell within the Word Search grid.
