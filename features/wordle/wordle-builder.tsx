@@ -3,10 +3,12 @@
 import { useState, useMemo } from "react";
 import { ActivityPreview } from "@/components/activity-preview";
 import { usePreferences } from "@/components/preference-provider";
-import { useActivityContent } from "../activities/use-activity-content";
+import { SavedConfigurationPanel } from "@/features/activities/saved-configuration-panel";
+import { useActivityContent } from "@/features/activities/use-activity-content";
+import { useSavedConfigurations } from "@/features/activities/use-saved-configurations";
 import { downloadHtmlFile } from "@/lib/download";
 import { buildStandaloneWordleHtml } from "@/lib/standalone";
-import type { Difficulty, Phoneme } from "@/lib/types";
+import type { Difficulty, Phoneme, WordleConfigurationRecord } from "@/lib/types";
 import {
     DIFFICULTY_DETAILS,
     DIFFICULTY_ORDER,
@@ -25,6 +27,8 @@ export function WordleBuilder() {
         contentState,
         errorMessage,
         selectList,
+        prepareContent,
+        commitPreparedContent,
         reloadLists,
         reloadContent,
     } = useActivityContent();
@@ -56,6 +60,47 @@ export function WordleBuilder() {
         downloadStatus,
         setDownloadStatus,
     ] = useState("");
+
+    // Validates saved content before changing the current builder.
+    // WordleConfigurationRecord contains the target’s wordListId, allows Orate to move to the correct list before selecting the saved word.
+    async function loadWordleConfiguration(
+        record: WordleConfigurationRecord,
+    ): Promise<void> {
+        const prepared =
+            await prepareContent(
+                record.word.wordListId,
+            );
+
+        const targetExists =
+            prepared.words.some(
+                (word) =>
+                    word.id === record.wordId,
+            );
+
+        if (!targetExists) {
+            throw new Error(
+                "The saved target is no longer available in its word list.",
+            );
+        }
+
+        // Apply the prepared list and all stored controls together.
+        commitPreparedContent(prepared);
+        setWordId(record.wordId);
+        setDifficulty(record.difficulty);
+        setHintsEnabled(record.hintsEnabled);
+        setDownloadStatus("");
+    }
+
+    const savedConfigurations =
+        useSavedConfigurations<
+            WordleConfigurationRecord
+        >({
+            endpoint:
+                "/api/wordle-configurations",
+            label: "Wordle",
+            onLoad:
+                loadWordleConfiguration,
+        });
 
     // Uses the requested target when valid, otherwise the first word.
     const selectedWord =
@@ -113,6 +158,38 @@ export function WordleBuilder() {
         selectedWord !== null &&
         hasCompleteSequence &&
         hasDistractor;
+
+    // Saves the current valid builder controls.
+    async function handleCreateConfiguration(): Promise<void> {
+        if (
+            !canGenerate ||
+            !selectedWord
+        ) {
+            return;
+        }
+
+        await savedConfigurations.create({
+            wordId: selectedWord.id,
+            difficulty,
+            hintsEnabled,
+        });
+    }
+
+    // Replaces the selected saved configuration.
+    async function handleUpdateConfiguration(): Promise<void> {
+        if (
+            !canGenerate ||
+            !selectedWord
+        ) {
+            return;
+        }
+
+        await savedConfigurations.update({
+            wordId: selectedWord.id,
+            difficulty,
+            hintsEnabled,
+        });
+    }
 
     // Generate directly from the current render's validated content.
     let standaloneHtml = "";
@@ -552,6 +629,42 @@ export function WordleBuilder() {
                             className="mt-1 h-5 w-5 shrink-0 accent-(--action) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
                         />
                     </label>
+
+                    <SavedConfigurationPanel
+                        idPrefix="wordle"
+                        activityLabel="Wordle"
+                        records={
+                            savedConfigurations.records
+                        }
+                        selectedId={
+                            savedConfigurations.selectedId
+                        }
+                        name={savedConfigurations.name}
+                        busy={savedConfigurations.busy}
+                        canSave={canGenerate}
+                        statusMessage={
+                            savedConfigurations.statusMessage
+                        }
+                        errorMessage={
+                            savedConfigurations.errorMessage
+                        }
+                        onSelect={
+                            savedConfigurations.selectRecord
+                        }
+                        onNameChange={
+                            savedConfigurations.setName
+                        }
+                        onCreate={
+                            handleCreateConfiguration
+                        }
+                        onUpdate={
+                            handleUpdateConfiguration
+                        }
+                        onDelete={
+                            savedConfigurations.remove
+                        }
+                    />
+
 
                     {/** Download button */}
                     <div className="mt-8 border-t border-(--border) pt-6">
