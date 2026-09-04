@@ -39,16 +39,16 @@ const HOSTILE_PHONEME = {
 
 const WORDLE_CONTENT:
     WordleActivityContent = {
-        selectedWord: {
-            id: "database-target",
-            english: TITLE_ATTACK,
-            ipa: `/${SCRIPT_ATTACK}/`,
-            phonemeIds: [
-                HOSTILE_PHONEME.id,
-            ],
-        },
-        phonemes: [HOSTILE_PHONEME],
-    };
+    selectedWord: {
+        id: "database-target",
+        english: TITLE_ATTACK,
+        ipa: `/${SCRIPT_ATTACK}/`,
+        phonemeIds: [
+            HOSTILE_PHONEME.id,
+        ],
+    },
+    phonemes: [HOSTILE_PHONEME],
+};
 
 const WORDLE_CONFIG: WordleConfig = {
     wordId:
@@ -59,25 +59,25 @@ const WORDLE_CONFIG: WordleConfig = {
 
 const WORD_SEARCH_CONTENT:
     WordSearchActivityContent = {
-        words: [
-            {
-                id: "database-search-word",
-                english: MARKUP_ATTACK,
-                ipa: "/x/",
-                phonemeIds: [
-                    HOSTILE_PHONEME.id,
-                ],
-            },
-        ],
-        phonemes: [HOSTILE_PHONEME],
-    };
+    words: [
+        {
+            id: "database-search-word",
+            english: MARKUP_ATTACK,
+            ipa: "/x/",
+            phonemeIds: [
+                HOSTILE_PHONEME.id,
+            ],
+        },
+    ],
+    phonemes: [HOSTILE_PHONEME],
+};
 
 const WORD_SEARCH_CONFIG:
     WordSearchConfig = {
-        difficulty: "easy",
-        seed: 42,
-        hintsEnabled: false,
-    };
+    difficulty: "easy",
+    seed: 42,
+    hintsEnabled: false,
+};
 
 function countOccurrences(
     value: string,
@@ -97,9 +97,9 @@ describe("standalone activity output", () => {
 
         expect(html).toContain(
             "<title>Orate Phoneme Wordle — " +
-                "&lt;/title&gt;&lt;script&gt;" +
-                "globalThis.pwned=true&lt;/script&gt; " +
-                '&amp; "quoted"</title>',
+            "&lt;/title&gt;&lt;script&gt;" +
+            "globalThis.pwned=true&lt;/script&gt; " +
+            '&amp; "quoted"</title>',
         );
 
         expect(html).not.toContain(
@@ -264,6 +264,60 @@ describe("standalone activity output", () => {
 
         expect(wordSearchHtml).not.toContain(
             '"id":"theta"',
+        );
+    });
+
+    it("embeds single-cell and shared-endpoint selection rules", () => {
+        const html =
+            buildStandaloneWordSearchHtml(
+                WORD_SEARCH_CONFIG,
+                WORD_SEARCH_CONTENT,
+                "light",
+            );
+
+        const matcherStart = html.indexOf(
+            "function findUnfoundPlacement",
+        );
+
+        const matcherEnd = html.indexOf(
+            "function completePlacement",
+        );
+
+        expect(matcherStart)
+            .toBeGreaterThanOrEqual(0);
+
+        expect(matcherEnd)
+            .toBeGreaterThan(matcherStart);
+
+        const matcherSource = html.slice(
+            matcherStart,
+            matcherEnd,
+        );
+
+        // Shared endpoints must resolve an unfound word first.
+        expect(matcherSource).toContain(
+            "!foundWordIds.has(placement.wordId)",
+        );
+
+        expect(matcherSource).toContain(
+            "placementMatchesEndpoints",
+        );
+
+        // One-phoneme words complete without a second click.
+        expect(html).toContain(
+            "placement.coordinates.length === 1",
+        );
+
+        expect(html).toContain(
+            "completePlacement(singleCellPlacement)",
+        );
+
+        expect(html).toContain(
+            "completePlacement(matchingPlacement)",
+        );
+
+        expect(html).toContain(
+            "const alreadyFound =",
         );
     });
 

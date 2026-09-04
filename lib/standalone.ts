@@ -1487,8 +1487,75 @@ export function buildStandaloneWordSearchHtml(
         " words found";
     }
 
+    // Filters out already completed words before matching the selected phoneme start & end points
+      // If two words are placed on the same line, selecting that line once completes the first word, and selecting it again completes the second.
+    function findUnfoundPlacement(start, end) {
+      return data.puzzle.placements.find(
+        (placement) =>
+          !foundWordIds.has(placement.wordId) &&
+          placementMatchesEndpoints(
+            placement,
+            start,
+            end
+          )
+      );
+    }
+
+    // Both one-cell and line selections use the same completion flow.
+    // Centralises progress updates, feedback, and rerendering.
+    function completePlacement(placement) {
+      foundWordIds.add(placement.wordId);
+
+      const matchedWord =
+        wordById.get(placement.wordId);
+
+      if (foundWordIds.size === data.words.length) {
+        setStatusMessage(
+          "Well done! You found every phoneme word.",
+          "success"
+        );
+      } else if (matchedWord) {
+        setStatusMessage(
+          "Found " +
+            matchedWord.ipa +
+            (
+              data.hintsEnabled
+                ? " - " + matchedWord.english
+                : ""
+            ) +
+            ".",
+          "success"
+        );
+      } else {
+        setStatusMessage(
+          "Word found!",
+          "success"
+        );
+      }
+
+      renderGrid();
+      renderWordList();
+    }
+
     function selectCell(coordinate) {
       if (selectionStart === null) {
+        // A one-phoneme word is completed with one click.
+        const singleCellPlacement =
+          data.puzzle.placements.find(
+            (placement) =>
+              placement.coordinates.length === 1 &&
+              !foundWordIds.has(placement.wordId) &&
+              coordinatesAreEqual(
+                placement.coordinates[0],
+                coordinate
+              )
+          );
+
+        if (singleCellPlacement) {
+          completePlacement(singleCellPlacement);
+          return;
+        }
+
         selectionStart = coordinate;
 
         setStatusMessage(
@@ -1515,69 +1582,38 @@ export function buildStandaloneWordSearchHtml(
         return;
       }
 
+      const start = selectionStart;
+      selectionStart = null;
+
       const matchingPlacement =
-        data.puzzle.placements.find(
+        findUnfoundPlacement(
+          start,
+          coordinate
+        );
+
+      if (matchingPlacement) {
+        completePlacement(matchingPlacement);
+        return;
+      }
+
+      // Warn only after every matching placement has been found.
+      const alreadyFound =
+        data.puzzle.placements.some(
           (placement) =>
+            foundWordIds.has(placement.wordId) &&
             placementMatchesEndpoints(
               placement,
-              selectionStart,
+              start,
               coordinate
             )
         );
 
-      selectionStart = null;
-
-      if (!matchingPlacement) {
-        setStatusMessage(
-          "That line is not one of the target words. Try again.",
-          "warning"
-        );
-      } else if (
-        foundWordIds.has(
-          matchingPlacement.wordId
-        )
-      ) {
-        setStatusMessage(
-          "You have already found that word. Choose another.",
-          "warning"
-        );
-      } else {
-        foundWordIds.add(
-          matchingPlacement.wordId
-        );
-
-        const matchedWord =
-          wordById.get(
-            matchingPlacement.wordId
-          );
-
-        if (
-          foundWordIds.size ===
-          data.words.length
-        ) {
-          setStatusMessage(
-            "Well done! You found every phoneme word.",
-            "success"
-          );
-        } else if (matchedWord) {
-          setStatusMessage(
-            "Found " +
-              matchedWord.ipa +
-              (
-                data.hintsEnabled
-                  ? " - " + matchedWord.english
-                  : ""
-              ) +
-              ".",
-            "success"
-          );
-        } else {
-          setStatusMessage(
-            "Word found!",
-            "success"
-          );
-        }
-      }
+      setStatusMessage(
+        alreadyFound
+          ? "You have already found that word. Choose another."
+          : "That line is not one of the target words. Try again.",
+        "warning"
+      );
 
       renderGrid();
       renderWordList();
