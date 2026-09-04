@@ -1,10 +1,11 @@
 import { ActivityDifficulty } from "@/build/generated/prisma/client";
 import { WORD_SEARCH_CONFIGURATION_SELECT, } from "@/lib/database/selections";
-import { GET as getWordSearchConfiguration } from "@/app/api/word-search-configurations/[configurationId]/route";
+import { GET as getWordSearchConfigurations, POST as createWordSearchConfiguration, } from "@/app/api/word-search-configurations/route";
 import {
-    GET as getWordSearchConfigurations,
-    POST as createWordSearchConfiguration,
-} from "@/app/api/word-search-configurations/route";
+    DELETE as deleteWordSearchConfiguration,
+    GET as getWordSearchConfiguration,
+    PATCH as updateWordSearchConfiguration,
+} from "@/app/api/word-search-configurations/[configurationId]/route";
 import {
     beforeEach,
     describe,
@@ -25,6 +26,8 @@ const databaseMocks = vi.hoisted(() => ({
     findMany: vi.fn(),
     create: vi.fn(),
     findUnique: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
 }));
 
 vi.mock("@/lib/database/client", () => ({
@@ -95,6 +98,10 @@ describe("Word Search configuration API routes", () => {
                         databaseMocks.create,
                     findUnique:
                         databaseMocks.findUnique,
+                    update:
+                        databaseMocks.update,
+                    delete:
+                        databaseMocks.delete,
                 },
             });
     });
@@ -387,6 +394,194 @@ describe("Word Search configuration API routes", () => {
         expect(
             databaseMocks.findUnique,
         ).not.toHaveBeenCalled();
+    });
+
+
+    it("updates only supplied configuration fields", async () => {
+        databaseMocks.update
+            .mockResolvedValue({
+                ...WORD_SEARCH_CONFIGURATION_RECORD,
+                difficulty:
+                    ActivityDifficulty.CHALLENGING,
+                seed: 314159,
+            });
+
+        const response =
+            await updateWordSearchConfiguration(
+                jsonRequest(
+                    `/api/word-search-configurations/${CONFIGURATION_ID}`,
+                    "PATCH",
+                    {
+                        difficulty:
+                            "challenging",
+                        seed: 314159,
+                    },
+                ),
+                configurationContext(),
+            );
+
+        expect(response.status).toBe(200);
+
+        expect(
+            databaseMocks.update,
+        ).toHaveBeenCalledWith({
+            where: {
+                id: CONFIGURATION_ID,
+            },
+            data: {
+                seed: 314159,
+                difficulty:
+                    ActivityDifficulty.CHALLENGING,
+            },
+            select:
+                WORD_SEARCH_CONFIGURATION_SELECT,
+        });
+
+        await expect(
+            response.json(),
+        ).resolves.toMatchObject({
+            data: {
+                id: CONFIGURATION_ID,
+                difficulty: "challenging",
+                seed: 314159,
+            },
+        });
+    });
+
+    it("rejects an empty configuration update", async () => {
+        const response =
+            await updateWordSearchConfiguration(
+                jsonRequest(
+                    `/api/word-search-configurations/${CONFIGURATION_ID}`,
+                    "PATCH",
+                    {},
+                ),
+                configurationContext(),
+            );
+
+        await expectApiError(
+            response,
+            400,
+            "VALIDATION_ERROR",
+        );
+
+        expect(
+            databaseMocks.update,
+        ).not.toHaveBeenCalled();
+
+        expect(
+            databaseMocks.getDatabase,
+        ).not.toHaveBeenCalled();
+    });
+        /** 
+         * P2025: configuration does not exist.
+         * P2002: requested name is already used.
+         * P2003: requested word list does not exist. 
+         * */
+        it.each([
+        [
+            "P2025",
+            404,
+            "WORD_SEARCH_CONFIGURATION_NOT_FOUND",
+        ],
+        [
+            "P2002",
+            409,
+            "WORD_SEARCH_CONFIGURATION_NAME_CONFLICT",
+        ],
+        [
+            "P2003",
+            404,
+            "WORD_LIST_NOT_FOUND",
+        ],
+    ] as const)(
+        "maps Word Search update error %s",
+        async (
+            prismaCode,
+            status,
+            apiCode,
+        ) => {
+            databaseMocks.update
+                .mockRejectedValue(
+                    prismaError(prismaCode),
+                );
+
+            const response =
+                await updateWordSearchConfiguration(
+                    jsonRequest(
+                        `/api/word-search-configurations/${CONFIGURATION_ID}`,
+                        "PATCH",
+                        {
+                            name:
+                                "Updated Word Search",
+                            wordListId: LIST_ID,
+                        },
+                    ),
+                    configurationContext(),
+                );
+
+            await expectApiError(
+                response,
+                status,
+                apiCode,
+            );
+        },
+    );
+
+        it("deletes a Word Search configuration", async () => {
+        databaseMocks.delete
+            .mockResolvedValue(
+                WORD_SEARCH_CONFIGURATION_RECORD,
+            );
+
+        const response =
+            await deleteWordSearchConfiguration(
+                new Request(
+                    `http://localhost/api/word-search-configurations/${CONFIGURATION_ID}`,
+                    {
+                        method: "DELETE",
+                    },
+                ),
+                configurationContext(),
+            );
+
+        expect(response.status).toBe(204);
+
+        await expect(
+            response.text(),
+        ).resolves.toBe("");
+
+        expect(
+            databaseMocks.delete,
+        ).toHaveBeenCalledWith({
+            where: {
+                id: CONFIGURATION_ID,
+            },
+        });
+    });
+
+    it("returns 404 when deleting a missing configuration", async () => {
+        databaseMocks.delete
+            .mockRejectedValue(
+                prismaError("P2025"),
+            );
+
+        const response =
+            await deleteWordSearchConfiguration(
+                new Request(
+                    `http://localhost/api/word-search-configurations/${CONFIGURATION_ID}`,
+                    {
+                        method: "DELETE",
+                    },
+                ),
+                configurationContext(),
+            );
+
+        await expectApiError(
+            response,
+            404,
+            "WORD_SEARCH_CONFIGURATION_NOT_FOUND",
+        );
     });
 
 });
