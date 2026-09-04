@@ -22,3 +22,46 @@ export const WORD_WITH_PHONEMES_SELECT = {
         },
     },
 } satisfies Prisma.WordSelect;
+
+// Loads a saved Wordle and the target's parent-list identity.
+export const WORDLE_CONFIGURATION_SELECT = {
+    id: true,
+    name: true,
+    wordId: true,
+    difficulty: true,
+    hintsEnabled: true,
+    createdAt: true,
+    updatedAt: true,
+    word: {
+        select: {
+            id: true,
+            wordListId: true,
+            english: true,
+            ipa: true,
+        },
+    },
+} satisfies Prisma.WordleConfigurationSelect;
+
+// Loads a saved Word Search with display information about its list.
+export const WORD_SEARCH_CONFIGURATION_SELECT = {
+    id: true,
+    name: true,
+    wordListId: true,
+    difficulty: true,
+    seed: true,
+    hintsEnabled: true,
+    createdAt: true,
+    updatedAt: true,
+    wordList: {
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            _count: {
+                select: {
+                    words: true,
+                },
+            },
+        },
+    },
+} satisfies Prisma.WordSearchConfigurationSelect;
