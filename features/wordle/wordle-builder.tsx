@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getPhoneme } from "@/lib/phoneme-definitions";
+import { getPhoneme, PHONEMES } from "@/lib/phoneme-definitions";
 import { getWordleWord, WORDLE_WORDS } from "@/lib/phonemes";
 import {
     DIFFICULTY_DETAILS,
@@ -15,8 +15,8 @@ import { ActivityPreview } from "@/components/activity-preview";
 import { usePreferences } from "@/components/preference-provider";
 
 export function WordleBuilder() {
-    
-    const { resolvedTheme  } = usePreferences();
+
+    const { resolvedTheme } = usePreferences();
     const [
         wordId,     // Current state value
         setWordId   // Function that updates the state
@@ -32,11 +32,18 @@ export function WordleBuilder() {
     };
 
     const selectedWord = getWordleWord(config.wordId);
-    //const selectedDifficulty = DIFFICULTY_DETAILS[config.difficulty];
-
     const [downloadStatus, setDownloadStatus] = useState("");
-    const standaloneHtml = buildStandaloneWordleHtml(config, resolvedTheme);
-
+    
+    // Uses static content until the database-backed builder is added.
+    const standaloneHtml =
+        buildStandaloneWordleHtml(
+            config,
+            {
+                selectedWord,
+                phonemes: PHONEMES,
+            },
+            resolvedTheme,
+        );
     // Download handler 
     function handleDownload() {
         const filename = `orate-wordle-${config.wordId}.html`;
@@ -205,7 +212,7 @@ export function WordleBuilder() {
                         />
                     </label>
 
-                    {/** Download button */ }
+                    {/** Download button */}
                     <div className="mt-8 border-t border-(--border) pt-6">
                         <h3 className="font-semibold text-foreground">
                             Download learner activity
