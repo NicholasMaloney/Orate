@@ -1,21 +1,6 @@
-import {
-    beforeEach,
-    describe,
-    expect,
-    it,
-    vi,
-} from "vitest";
 import { ActivityDifficulty } from "@/build/generated/prisma/client";
-
-const databaseMocks = vi.hoisted(() => ({
-    getDatabase: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-}));
-
-vi.mock("@/lib/database/client", () => ({getDatabase: databaseMocks.getDatabase,}));
-
-import {GET as getWordleConfigurations, POST as createWordleConfiguration, } from "@/app/api/wordle-configurations/route";
+import { GET as getWordleConfiguration } from "@/app/api/wordle-configurations/[configurationId]/route";
+import { GET as getWordleConfigurations, POST as createWordleConfiguration, } from "@/app/api/wordle-configurations/route";
 import { WORDLE_CONFIGURATION_SELECT } from "@/lib/database/selections";
 import {
     CREATED_AT,
@@ -25,6 +10,22 @@ import {
     UPDATED_AT,
     WORD_ID,
 } from "@/tests/api/route-test-helpers";
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
+
+const databaseMocks = vi.hoisted(() => ({
+    getDatabase: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    findUnique: vi.fn(),
+}));
+
+vi.mock("@/lib/database/client", () => ({ getDatabase: databaseMocks.getDatabase, }));
 
 const CONFIGURATION_ID =
     "66666666-6666-4666-8666-666666666666";
@@ -46,6 +47,17 @@ const WORDLE_CONFIGURATION_RECORD = {
     },
 };
 
+// Recreates the asynchronous context supplied by Next.js.
+function configurationContext(
+    configurationId = CONFIGURATION_ID,
+) {
+    return {
+        params: Promise.resolve({
+            configurationId,
+        }),
+    };
+}
+
 async function expectApiError(
     response: Response,
     status: number,
@@ -62,7 +74,7 @@ async function expectApiError(
     });
 }
 
-describe("Wordle configuration collection API", () => {
+describe("Wordle configuration API routes", () => {
     beforeEach(() => {
         vi.resetAllMocks();
 
@@ -73,6 +85,8 @@ describe("Wordle configuration collection API", () => {
                         databaseMocks.findMany,
                     create:
                         databaseMocks.create,
+                    findUnique:
+                        databaseMocks.findUnique,
                 },
             });
     });
@@ -252,4 +266,99 @@ describe("Wordle configuration collection API", () => {
             "WORD_NOT_FOUND",
         );
     });
+
+    it("returns one mapped Wordle configuration", async () => {
+        databaseMocks.findUnique
+            .mockResolvedValue(
+                WORDLE_CONFIGURATION_RECORD,
+            );
+
+        const response =
+            await getWordleConfiguration(
+                new Request(
+                    `http://localhost/api/wordle-configurations/${CONFIGURATION_ID}`,
+                ),
+                configurationContext(),
+            );
+
+        expect(response.status).toBe(200);
+
+        expect(
+            databaseMocks.findUnique,
+        ).toHaveBeenCalledWith({
+            where: {
+                id: CONFIGURATION_ID,
+            },
+            select:
+                WORDLE_CONFIGURATION_SELECT,
+        });
+
+        await expect(
+            response.json(),
+        ).resolves.toEqual({
+            data: {
+                id: CONFIGURATION_ID,
+                name: "Classroom Wordle",
+                wordId: WORD_ID,
+                difficulty: "standard",
+                hintsEnabled: true,
+                createdAt:
+                    CREATED_AT.toISOString(),
+                updatedAt:
+                    UPDATED_AT.toISOString(),
+                word: {
+                    id: WORD_ID,
+                    wordListId: LIST_ID,
+                    english: "chin",
+                    ipa: "/tʃɪn/",
+                },
+            },
+        });
+    });
+
+    it("returns 404 for a missing configuration", async () => {
+        databaseMocks.findUnique
+            .mockResolvedValue(null);
+
+        const response =
+            await getWordleConfiguration(
+                new Request(
+                    `http://localhost/api/wordle-configurations/${CONFIGURATION_ID}`,
+                ),
+                configurationContext(),
+            );
+
+        await expectApiError(
+            response,
+            404,
+            "WORDLE_CONFIGURATION_NOT_FOUND",
+        );
+    });
+
+    it("rejects an invalid configuration UUID", async () => {
+        const response =
+            await getWordleConfiguration(
+                new Request(
+                    "http://localhost/api/wordle-configurations/invalid",
+                ),
+                configurationContext(
+                    "invalid",
+                ),
+            );
+
+        await expectApiError(
+            response,
+            400,
+            "VALIDATION_ERROR",
+        );
+
+        expect(
+            databaseMocks.getDatabase,
+        ).not.toHaveBeenCalled();
+
+        expect(
+            databaseMocks.findUnique,
+        ).not.toHaveBeenCalled();
+    });
+
 });
