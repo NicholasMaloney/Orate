@@ -16,7 +16,7 @@ interface NamedConfiguration {
     readonly name: string;
 }
 
-// Defines the options required by the saved config 
+// Defines the options required by the saved config.
 interface SavedConfigurationOptions<
     TRecord extends NamedConfiguration,
 > {

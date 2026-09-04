@@ -695,10 +695,10 @@ export function WordleBuilder() {
 
                 </section>
 
-                {/* 
-                    The live activity Preview is only displayed if both the generated HTML and the targeted word for the Wordle activity 
-                    If this condition is not met, e.g. empty string, null or undefined value is given. 
-                    The activity preview will show a error message ' preview unavailable, please select.. etc" 
+                {/*
+                    The live activity Preview is only displayed if both the generated HTML and the targeted word for the Wordle activity
+                    If this condition is not met, e.g. empty string, null or undefined value is given.
+                    The activity preview will show a error message ' preview unavailable, please select.. etc"
                 */}
                 {standaloneHtml &&
                     selectedWord ? (
