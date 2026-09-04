@@ -1,5 +1,6 @@
-import {ActivityDifficulty} from "@/build/generated/prisma/client";
-import {WORD_SEARCH_CONFIGURATION_SELECT,} from "@/lib/database/selections";
+import { ActivityDifficulty } from "@/build/generated/prisma/client";
+import { WORD_SEARCH_CONFIGURATION_SELECT, } from "@/lib/database/selections";
+import { GET as getWordSearchConfiguration } from "@/app/api/word-search-configurations/[configurationId]/route";
 import {
     GET as getWordSearchConfigurations,
     POST as createWordSearchConfiguration,
@@ -23,6 +24,7 @@ const databaseMocks = vi.hoisted(() => ({
     getDatabase: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
+    findUnique: vi.fn(),
 }));
 
 vi.mock("@/lib/database/client", () => ({
@@ -53,6 +55,17 @@ const WORD_SEARCH_CONFIGURATION_RECORD = {
     },
 };
 
+// Recreates the asynchronous context supplied by Next.js.
+function configurationContext(
+    configurationId = CONFIGURATION_ID,
+) {
+    return {
+        params: Promise.resolve({
+            configurationId,
+        }),
+    };
+}
+
 async function expectApiError(
     response: Response,
     status: number,
@@ -69,7 +82,7 @@ async function expectApiError(
     });
 }
 
-describe("Word Search configuration collection API", () => {
+describe("Word Search configuration API routes", () => {
     beforeEach(() => {
         vi.resetAllMocks();
 
@@ -80,6 +93,8 @@ describe("Word Search configuration collection API", () => {
                         databaseMocks.findMany,
                     create:
                         databaseMocks.create,
+                    findUnique:
+                        databaseMocks.findUnique,
                 },
             });
     });
@@ -276,4 +291,102 @@ describe("Word Search configuration collection API", () => {
             "WORD_LIST_NOT_FOUND",
         );
     });
+
+    it("returns one mapped Word Search configuration", async () => {
+        databaseMocks.findUnique
+            .mockResolvedValue(
+                WORD_SEARCH_CONFIGURATION_RECORD,
+            );
+
+        const response =
+            await getWordSearchConfiguration(
+                new Request(
+                    `http://localhost/api/word-search-configurations/${CONFIGURATION_ID}`,
+                ),
+                configurationContext(),
+            );
+
+        expect(response.status).toBe(200);
+
+        expect(
+            databaseMocks.findUnique,
+        ).toHaveBeenCalledWith({
+            where: {
+                id: CONFIGURATION_ID,
+            },
+            select:
+                WORD_SEARCH_CONFIGURATION_SELECT,
+        });
+
+        await expect(
+            response.json(),
+        ).resolves.toEqual({
+            data: {
+                id: CONFIGURATION_ID,
+                name:
+                    "Classroom Word Search",
+                wordListId: LIST_ID,
+                difficulty: "standard",
+                seed: 260724,
+                hintsEnabled: true,
+                createdAt:
+                    CREATED_AT.toISOString(),
+                updatedAt:
+                    UPDATED_AT.toISOString(),
+                wordList: {
+                    id: LIST_ID,
+                    name: "Classroom words",
+                    description:
+                        "Term two content",
+                    wordCount: 12,
+                },
+            },
+        });
+    });
+
+    it("returns 404 for a missing configuration", async () => {
+        databaseMocks.findUnique
+            .mockResolvedValue(null);
+
+        const response =
+            await getWordSearchConfiguration(
+                new Request(
+                    `http://localhost/api/word-search-configurations/${CONFIGURATION_ID}`,
+                ),
+                configurationContext(),
+            );
+
+        await expectApiError(
+            response,
+            404,
+            "WORD_SEARCH_CONFIGURATION_NOT_FOUND",
+        );
+    });
+
+    it("rejects an invalid configuration UUID", async () => {
+        const response =
+            await getWordSearchConfiguration(
+                new Request(
+                    "http://localhost/api/word-search-configurations/invalid",
+                ),
+                configurationContext(
+                    "invalid",
+                ),
+            );
+
+        await expectApiError(
+            response,
+            400,
+            "VALIDATION_ERROR",
+        );
+
+        expect(
+            databaseMocks.getDatabase,
+        ).not.toHaveBeenCalled();
+
+        expect(
+            databaseMocks.findUnique,
+        ).not.toHaveBeenCalled();
+    });
+
 });
