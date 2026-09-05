@@ -310,7 +310,7 @@ export function WordleBuilder() {
                                             }
                                         >
                                             {wordList.name}
-                                            {" — "}
+                                            {" - "}
                                             {
                                                 wordList.wordCount
                                             }

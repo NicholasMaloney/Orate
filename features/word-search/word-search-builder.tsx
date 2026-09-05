@@ -20,7 +20,7 @@ const WORD_SEARCH_DIFFICULTY_DESCRIPTIONS: Readonly<Record<Difficulty, string>
     challenging: "12 × 12 grid with forward, reverse, and upward words.",
 };
 
-// This is max seed value since Prisma maps PostgreSQL Int columns to signed 32-bit values. 
+// Highest positive value accepted by PostgreSQL Int.
 const POSTGRES_INTEGER_MAXIMUM =
     2_147_483_647;
 
@@ -109,7 +109,8 @@ export function WordSearchBuilder() {
                 loadWordSearchConfiguration,
         });
 
-    // Actiivty can only be generated when the list selected has finished loading and contains words and phoneme data
+    // Failed generation must not produce preview or download HTML.
+    // Actiivty can only be generated when the list selected has finished loading and contains words and phoneme data.
     const hasUsableContent =
         activeContent !== null &&
         activeContent.words.length > 0 &&
@@ -126,7 +127,7 @@ export function WordSearchBuilder() {
         activeContent
     ) {
         try {
-            // Build the acitivty based on selected word list, phoneme and theme 
+            // Build the acitivty based on selected word list and theme
             standaloneHtml =
                 buildStandaloneWordSearchHtml(
                     config,
@@ -138,7 +139,7 @@ export function WordSearchBuilder() {
                     },
                     resolvedTheme,
                 );
-        } catch (error) { // throws error if could not generate - unplaced word, too long ect. Displayed on UI 
+        } catch (error) {
             generationError =
                 error instanceof Error
                     ? error.message
