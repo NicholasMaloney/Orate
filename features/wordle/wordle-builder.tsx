@@ -310,7 +310,7 @@ export function WordleBuilder() {
                                             }
                                         >
                                             {wordList.name}
-                                            {" — "}
+                                            {" - "}
                                             {
                                                 wordList.wordCount
                                             }
@@ -447,7 +447,7 @@ export function WordleBuilder() {
                                             value={word.id}
                                         >
                                             {word.ipa}
-                                            {" — "}
+                                            {" - "}
                                             {word.english}
                                         </option>
                                     ),
