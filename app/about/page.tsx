@@ -51,19 +51,24 @@ export default function AboutPage() {
                                 </p>
 
                                 <p>
-                                    This version is a frontend-only application.
-                                    React manages the interactive interface,
-                                    TypeScript describes the project&apos;s data,
-                                    and Next.js provides the routes and shared page
-                                    structure.
+                                    This version of Orate is a full-stack Next.js
+                                    application. React manages the teacher interface,
+                                    Route Handlers provide the JSON APIs, and Zod
+                                    validates data before it is saved with Prisma and
+                                    PostgreSQL.
                                 </p>
 
                                 <p>
-                                    The project does not currently use a database,
-                                    user accounts, or a separate backend API.
-                                    Preferences are stored in browser cookies, while
-                                    generated activities are downloaded directly by
-                                    the browser.
+                                    Teachers can create word lists and ordered phonemes
+                                    in the Library, use the stored content in both
+                                    activity builders, and save activity configurations
+                                    for later. The preview and downloaded activity are
+                                    created from the same standalone HTML.
+                                </p>
+
+                                <p>
+                                    Orate does not currently include user accounts,
+                                    or authentication.
                                 </p>
                             </div>
                         </section>
@@ -138,8 +143,10 @@ export default function AboutPage() {
                                 id="instructional-video-description"
                                 className="mt-3 text-(--muted-text)"
                             >
-                                This video demonstration provides an overview of Orate, and explains how teachers and speach pathologists can configure,
-                                preview, and download the Wordle and Word Search activities.
+                                This video demonstration provides an overview of
+                                Orate and explains how teachers and speech
+                                pathologists can configure, preview, and download
+                                the Wordle and Word Search activities.
                             </p>
 
                             <figure className="mt-6">
@@ -215,12 +222,15 @@ export default function AboutPage() {
                         </h2>
 
                         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-(--muted-text)">
-                            <li>Next.js App Router</li>
-                            <li>React interactive components</li>
+                            <li>Next.js App Router and Route Handlers</li>
+                            <li>React client components and state</li>
                             <li>TypeScript data models</li>
                             <li>Tailwind CSS styling</li>
+                            <li>Prisma ORM with PostgreSQL</li>
+                            <li>Zod request validation</li>
                             <li>Cookie-based preferences</li>
                             <li>Standalone HTML generation</li>
+                            <li>Docker Compose</li>
                         </ul>
                     </aside>
                 </div>
