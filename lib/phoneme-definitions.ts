@@ -1,7 +1,7 @@
 import type { Phoneme } from "@/lib/types";
 
 
-// speach sounds used by Worlde 
+// speech sounds used by Worlde 
 export const PHONEMES: readonly Phoneme[] = [
     {
         id: "theta",
