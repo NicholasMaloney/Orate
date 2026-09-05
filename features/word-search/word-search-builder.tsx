@@ -18,6 +18,9 @@ const WORD_SEARCH_DIFFICULTY_DESCRIPTIONS: Readonly<Record<Difficulty, string>
     challenging: "12 × 12 grid with forward, reverse, and upward words.",
 };
 
+// This is max seed value since Prisma maps PostgreSQL Int columns to signed 32-bit values. 
+const POSTGRES_INTEGER_MAXIMUM =
+    2_147_483_647;
 
 // Contains the teacher controls and preview for the Word Search activity 
 export function WordSearchBuilder() {
@@ -69,20 +72,36 @@ export function WordSearchBuilder() {
         activeContent.words.length > 0 &&
         activeContent.phonemes.length > 0;
 
-    // Generates the HTML actiivty from the selected list. If content is unavailable return an empty string
-    const standaloneHtml =
-        hasUsableContent
-            ? buildStandaloneWordSearchHtml(
-                config,
-                {
-                    words:
-                        activeContent.words,
-                    phonemes:
-                        activeContent.phonemes,
-                },
-                resolvedTheme,
-            )
-            : "";
+
+    // Start with no gen activity or error message. Updates when component renders 
+    let standaloneHtml = "";
+    let generationError = "";
+
+    // Only generates the HTML actiivty when the selected database list contains the words and phonemes required
+    if (
+        hasUsableContent &&
+        activeContent
+    ) {
+        try {
+            // Build the acitivty based on selected word list, phoneme and theme 
+            standaloneHtml =
+                buildStandaloneWordSearchHtml(
+                    config,
+                    {
+                        words:
+                            activeContent.words,
+                        phonemes:
+                            activeContent.phonemes,
+                    },
+                    resolvedTheme,
+                );
+        } catch (error) { // throws error if could not generate - unplaced word, too long ect. Displayed on UI 
+            generationError =
+                error instanceof Error
+                    ? error.message
+                    : "The puzzle could not be generated.";
+        }
+    }
 
     /**  This is a React 'functional update' 
         * essensially this handles an edge case: where multiple updates are queued e.g. a user clicks regen multiple times quickly 
@@ -90,10 +109,16 @@ export function WordSearchBuilder() {
         * if I used say setSeed(seed + 1); and a user spamed the button then a value may be lost before React could update anything 
     */
     function regeneratePuzzle() {
-        setSeed((currentSeed) => currentSeed + 1);
+        // Functional updates remain correct during rapid clicks.
+        setSeed((currentSeed) =>
+            currentSeed >=
+                POSTGRES_INTEGER_MAXIMUM
+                ? 1
+                : currentSeed + 1,
+        );
+
         setDownloadStatus("");
     }
-
     // Downloads the currently generated Word Search as an HTML file
     function handleDownload() {
         // If standaloneHtml does not exist break.
@@ -178,7 +203,7 @@ export function WordSearchBuilder() {
                                     value={wordList.id}
                                 >
                                     {wordList.name}
-                                    {" — "}
+                                    {" - "}
                                     {wordList.wordCount}
                                     {" words"}
                                 </option>
@@ -257,6 +282,15 @@ export function WordSearchBuilder() {
                         </p>
                     ) : null}
                 </div>
+
+                {generationError ? (
+                    <p
+                        role="alert"
+                        className="mt-4 text-sm text-(--danger)"
+                    >
+                        {generationError}
+                    </p>
+                ) : null}
 
                 <fieldset className="mt-6">
                     <legend className="font-semibold text-foreground">
@@ -399,8 +433,9 @@ export function WordSearchBuilder() {
                     </h2>
 
                     <p className="mt-2 text-sm text-(--muted-text)">
-                        Choose a populated word list to generate the
-                        puzzle.
+                        {generationError
+                            ? "Resolve the generation error before previewing or downloading."
+                            : "Choose a populated word list to generate the puzzle."}
                     </p>
                 </section>
             )}
