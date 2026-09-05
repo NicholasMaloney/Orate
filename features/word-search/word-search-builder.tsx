@@ -6,8 +6,10 @@ import { useActivityContent } from "@/features/activities/use-activity-content";
 import { DIFFICULTY_DETAILS, DIFFICULTY_ORDER } from "@/lib/difficulty";
 import { downloadHtmlFile } from "@/lib/download";
 import { buildStandaloneWordSearchHtml } from "@/lib/standalone";
-import type { Difficulty, WordSearchConfig } from "@/lib/types";
+import type { Difficulty, WordSearchConfig, WordSearchConfigurationRecord } from "@/lib/types";
 import { ActivityPreview } from "@/components/activity-preview";
+import { SavedConfigurationPanel } from "@/features/activities/saved-configuration-panel";
+import { useSavedConfigurations } from "@/features/activities/use-saved-configurations";
 
 // Describes how each Word Seach difficulty affects the puzzle 
 // The generator contains the actual rules this just displays / explains the rules to the teacher and/or speach path
@@ -36,6 +38,8 @@ export function WordSearchBuilder() {
         contentState,   // loading state for selected word list contnet
         errorMessage,   // api error message displayed on front end
         selectList,
+        prepareContent,
+        commitPreparedContent,
         reloadLists,
         reloadContent,
     } = useActivityContent();
@@ -65,6 +69,45 @@ export function WordSearchBuilder() {
 
     // This is for the standalone HTML generator / downloader 
     const [downloadStatus, setDownloadStatus] = useState("");
+
+    // Validates saved content before changing the builder.
+    async function loadWordSearchConfiguration(
+        record: WordSearchConfigurationRecord,
+    ): Promise<void> {
+        const prepared =
+            await prepareContent(
+                record.wordListId,
+            );
+
+        if (prepared.words.length === 0) {
+            throw new Error(
+                "The saved word list no longer contains any words.",
+            );
+        }
+
+        // Apply the prepared list and stored controls together.
+        commitPreparedContent(prepared);
+        setDifficulty(record.difficulty);
+        setSeed(record.seed);
+        setHintsEnabled(record.hintsEnabled);
+        setDownloadStatus("");
+    }
+    // Responsible for loading, creating, updating, and deleting saved Word Search configurations.
+    const savedConfigurations =
+        useSavedConfigurations<
+            WordSearchConfigurationRecord
+        >({
+            // Collection endpoint used for GET and POST requests.
+            // The hook appends an ID for PATCH and DELETE requests.
+            endpoint: "/api/word-search-configurations",
+
+            // Readable name used in status and error messages.
+            label: "Word Search",
+
+            // Function called when the teacher selects a saved setup.
+            onLoad:
+                loadWordSearchConfiguration,
+        });
 
     // Actiivty can only be generated when the list selected has finished loading and contains words and phoneme data
     const hasUsableContent =
@@ -101,6 +144,38 @@ export function WordSearchBuilder() {
                     ? error.message
                     : "The puzzle could not be generated.";
         }
+    }
+
+    const canSaveConfiguration =
+        selectedListId.length > 0 &&
+        standaloneHtml.length > 0;
+
+    // Stores the current valid Word Search setup.
+    async function handleCreateConfiguration(): Promise<void> {
+        if (!canSaveConfiguration) {
+            return;
+        }
+
+        await savedConfigurations.create({
+            wordListId: selectedListId,
+            difficulty,
+            seed,
+            hintsEnabled,
+        });
+    }
+
+    // Replaces the selected saved setup.
+    async function handleUpdateConfiguration(): Promise<void> {
+        if (!canSaveConfiguration) {
+            return;
+        }
+
+        await savedConfigurations.update({
+            wordListId: selectedListId,
+            difficulty,
+            seed,
+            hintsEnabled,
+        });
     }
 
     /**  This is a React 'functional update' 
@@ -383,6 +458,41 @@ export function WordSearchBuilder() {
                         Regenerate puzzle
                     </button>
                 </div>
+
+                <SavedConfigurationPanel
+                    idPrefix="word-search"
+                    activityLabel="Word Search"
+                    records={
+                        savedConfigurations.records
+                    }
+                    selectedId={
+                        savedConfigurations.selectedId
+                    }
+                    name={savedConfigurations.name}
+                    busy={savedConfigurations.busy}
+                    canSave={canSaveConfiguration}
+                    statusMessage={
+                        savedConfigurations.statusMessage
+                    }
+                    errorMessage={
+                        savedConfigurations.errorMessage
+                    }
+                    onSelect={
+                        savedConfigurations.selectRecord
+                    }
+                    onNameChange={
+                        savedConfigurations.setName
+                    }
+                    onCreate={
+                        handleCreateConfiguration
+                    }
+                    onUpdate={
+                        handleUpdateConfiguration
+                    }
+                    onDelete={
+                        savedConfigurations.remove
+                    }
+                />
 
                 <div className="mt-8 border-t border-(--border) pt-6">
                     <h3 className="font-semibold text-foreground">
