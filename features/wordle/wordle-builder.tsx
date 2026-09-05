@@ -447,7 +447,7 @@ export function WordleBuilder() {
                                             value={word.id}
                                         >
                                             {word.ipa}
-                                            {" — "}
+                                            {" - "}
                                             {word.english}
                                         </option>
                                     ),
