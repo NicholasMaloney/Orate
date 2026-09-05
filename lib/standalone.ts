@@ -279,7 +279,6 @@ function documentShell({
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#activity">Skip to activity</a>
 
   <main class="app" id="activity">
     <p class="brand"></p>
