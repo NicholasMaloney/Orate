@@ -2,11 +2,18 @@
     # Dockefile builds to prof image of Orate 
     # It also generates the Prisma Client because the application needs it to communicate with the database.
 
-FROM node:22-bookworm-slim AS dependencies
+FROM node:22-bookworm-slim AS base
 
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Prisma requires OpenSSL in build, database, and runtime stages.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM base AS dependencies
 
 # Install the specific dependency versions from package-lock.json
 COPY package.json package-lock.json ./
@@ -19,7 +26,7 @@ COPY . .
 
 # Prisma config requires this while loading
 # Client gen does not conntect to this placehlder database
-ENV DATABASE_URL=postgresql://build@127.0.0.1:5432
+ENV DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build
 
 RUN npm run db:generate -- --config prisma7.config.ts
 
@@ -31,12 +38,10 @@ RUN npm run build
 # The Compose migration and seed jobs use this stage
 FROM source AS database-tools
 
-FROM node:22-bookworm-slim AS runner
+FROM base AS runner
 
-WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
