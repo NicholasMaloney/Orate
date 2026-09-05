@@ -1,5 +1,5 @@
-# Note for Future me: 
-    # Dockefile builds to prof image of Orate 
+# Note for Future me:
+    # Dockefile builds to prof image of Orate
     # It also generates the Prisma Client because the application needs it to communicate with the database.
 
 FROM node:22-bookworm-slim AS base
@@ -19,10 +19,10 @@ FROM base AS dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM dependencies AS source 
+FROM dependencies AS source
 
 # Copy app source after dependencies for better layer cashing
-COPY . . 
+COPY . .
 
 # Prisma config requires this while loading
 # Client gen does not conntect to this placehlder database
