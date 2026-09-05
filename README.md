@@ -1,28 +1,36 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public\branding\orate-logo-horizontal-reverse-4096.png">
-  <source media="(prefers-color-scheme: light)" srcset="public\branding\orate-logo-horizontal-4096.png">
-  <img alt="Description" src="public\branding\orate-logo-horizontal-4096.png">
-</picture>   
+  <source media="(prefers-color-scheme: dark)" srcset="public/branding/orate-logo-horizontal-reverse-4096.png">
+  <source media="(prefers-color-scheme: light)" srcset="public/branding/orate-logo-horizontal-4096.png">
+  <img alt="Orate" src="public/branding/orate-logo-horizontal-4096.png">
+</picture>
 
-Orate is a teacher facing builder for phoneme Wordle and Word Search
-activities. It is intended for teachers and speech pathologists who want to
-configure an activity, test the learner experience, and download one playable
+Orate is a teacher facing, full stack builder for phoneme Wordle and Word Search
+activities. It is intended for teachers and speech pathologists who want to create custom
+word lists, configure an activity, test the learner experience, and download one playable
 HTML file for classroom use.
 
-The downloaded activities are self-contained: their HTML, CSS, data, and plain
-JavaScript are embedded in a single file that can run offline in a normal web
+Word lists, ordered phonemes, and saved activity configurations are stored in
+PostgreSQL. The Wordle and Word Search builders load this stored content
+through validated API routes.
+
+Downloaded activities are self-contained. Their HTML, CSS, activity data, and
+plain JavaScript are embedded in one file that can run offline in a normal web
 browser.
 
 ## Features
 
-- Configurable Phoneme Wordle target, difficulty, and spelling hints.
-- Seeded Word Search puzzles with difficulty-dependent grids and directions.
+- Library for creating, editing, and deleting reusable word lists.
+- Word management with ordered, multi-character phoneme symbols.
+- Database-backed Wordle target selection, difficulty, and spelling hints.
+- Database-backed Word Search lists, seeded puzzles, and difficulty rules.
+- Saved Wordle and Word Search configurations.
+- Validated JSON APIs and a database healthcheck.
 - Exact learner preview before download.
 - Single-file offline HTML downloads.
-- Blue Mist light and Deep Navy dark themes carried into previews/downloads.
+- Blue Mist light and Deep Navy dark activity themes.
 - Comfortable and compact interface density preferences.
-- Cookie persistence with immediate visual updates.
-- Responsive direct navigation and an accessible compact hamburger menu.
+- Cookie-based preference persistence.
+- Responsive navigation with keyboard-accessible controls.
 
 ## Technology
 
@@ -39,6 +47,22 @@ browser.
 Orate is a full-stack application. Validated Route Handlers expose JSON APIs,
 Prisma maps application data, and PostgreSQL stores word lists, ordered
 phonemes, and reusable activity configurations.
+
+## Data and API
+
+The main request flow is:
+
+```text
+Teacher interface
+    → validated Next.js Route Handler
+    → Prisma
+    → PostgreSQL
+```
+
+The API supports word lists, words, activity-ready content, saved Wordle
+configurations, and saved Word Search configurations. Successful JSON
+responses place their result inside `data`, while errors return a code and
+message. Successful delete requests return `204 No Content`.
 
 ## Local development
 
@@ -186,3 +210,13 @@ npm run db:validate
 | `/settings` | Persistent theme and density controls. |
 | `/library` | Create and manage reusable word lists and ordered phonemes. |
 | `/health` | Report application and PostgreSQL health. |
+
+## Known limitations
+
+Orate is a university assignment
+
+- It does not include user accounts, authentication, or authorisation.
+- Stored content is not separated between different teachers.
+- Anyone with access to the teacher application can modify its stored data.
+- The teacher application requires its configured PostgreSQL database.
+- Downloaded activities run offline but do not receive later database changes.
