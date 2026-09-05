@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
     useRef,
     useState,
@@ -42,11 +43,22 @@ const COMPACT_LINKS = [
 ] as const;
 
 const desktopLinkClasses =
-    "rounded-md font-medium text-(--muted-text) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--focus-ring)";
+    "rounded-md px-2 py-1.5 font-medium transition-colors hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)";
 const menuLinkClasses =
-    "block rounded-lg px-4 py-3 font-medium text-(--muted-text) hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)";
+    "block rounded-lg px-4 py-3 font-medium transition-colors hover:bg-(--accent-soft) hover:text-(--accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)";
 
-    export function SiteNavigation() {
+export function SiteNavigation() {
+
+    const pathname = usePathname();
+
+    function isCurrentRoute(
+        href: string,
+    ): boolean {
+        return href === "/"
+            ? pathname === "/"
+            : pathname === href || pathname.startsWith(`${href}/`)
+    }
+
     const [isMenuOpen, setIsMenuOpen] =
         useState(false);
 
@@ -82,15 +94,32 @@ const menuLinkClasses =
                 className="hidden items-center gap-x-(--control-spacing) md:flex"
                 aria-label="Primary navigation"
             >
-                {PRIMARY_LINKS.map((navigationLink) => (
-                    <Link
-                        key={navigationLink.href}
-                        href={navigationLink.href}
-                        className={desktopLinkClasses}
-                    >
-                        {navigationLink.label}
-                    </Link>
-                ))}
+                {PRIMARY_LINKS.map(
+                    (navigationLink) => {
+                        const isCurrent =
+                            isCurrentRoute(
+                                navigationLink.href,
+                            );
+
+                        return (
+                            <Link
+                                key={navigationLink.href}
+                                href={navigationLink.href}
+                                aria-current={
+                                    isCurrent
+                                        ? "page"
+                                        : undefined
+                                }
+                                className={`${desktopLinkClasses} ${isCurrent
+                                    ? "bg-(--accent-soft) text-(--accent)"
+                                    : "text-(--muted-text)"
+                                    }`}
+                            >
+                                {navigationLink.label}
+                            </Link>
+                        );
+                    },
+                )}
             </nav>
 
             <button
@@ -148,16 +177,33 @@ const menuLinkClasses =
             >
                 {/** On mobile, the direct desktop links move into the menu so every route remains available. */}
                 <div className="md:hidden">
-                    {PRIMARY_LINKS.map((navigationLink) => (
-                        <Link
-                            key={navigationLink.href}
-                            href={navigationLink.href}
-                            onClick={closeMenu}
-                            className={menuLinkClasses}
-                        >
-                            {navigationLink.label}
-                        </Link>
-                    ))}
+                    {PRIMARY_LINKS.map(
+                        (navigationLink) => {
+                            const isCurrent =
+                                isCurrentRoute(
+                                    navigationLink.href,
+                                );
+
+                            return (
+                                <Link
+                                    key={navigationLink.href}
+                                    href={navigationLink.href}
+                                    aria-current={
+                                        isCurrent
+                                            ? "page"
+                                            : undefined
+                                    }
+                                    onClick={closeMenu}
+                                    className={`${menuLinkClasses} ${isCurrent
+                                        ? "bg-(--accent-soft) text-(--accent)"
+                                        : "text-(--muted-text)"
+                                        }`}
+                                >
+                                    {navigationLink.label}
+                                </Link>
+                            );
+                        },
+                    )}
                 </div>
 
                 {/*
@@ -166,16 +212,33 @@ const menuLinkClasses =
                  * but disappears on desktop where those links are absent.
                  */}
                 <div className="mt-2 border-t border-(--border) pt-2 md:mt-0 md:border-t-0 md:pt-0">
-                    {COMPACT_LINKS.map((navigationLink) => (
-                        <Link
-                            key={navigationLink.href}
-                            href={navigationLink.href}
-                            onClick={closeMenu}
-                            className={menuLinkClasses}
-                        >
-                            {navigationLink.label}
-                        </Link>
-                    ))}
+                    {COMPACT_LINKS.map(
+                        (navigationLink) => {
+                            const isCurrent =
+                                isCurrentRoute(
+                                    navigationLink.href,
+                                );
+
+                            return (
+                                <Link
+                                    key={navigationLink.href}
+                                    href={navigationLink.href}
+                                    aria-current={
+                                        isCurrent
+                                            ? "page"
+                                            : undefined
+                                    }
+                                    onClick={closeMenu}
+                                    className={`${menuLinkClasses} ${isCurrent
+                                            ? "bg-(--accent-soft) text-(--accent)"
+                                            : "text-(--muted-text)"
+                                        }`}
+                                >
+                                    {navigationLink.label}
+                                </Link>
+                            );
+                        },
+                    )}
                 </div>
             </nav>
         </div>

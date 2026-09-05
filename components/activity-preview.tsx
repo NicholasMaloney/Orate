@@ -5,7 +5,7 @@ interface ActivityPreviewProps {
 }
 
 // Displays the exact standalone HTML that will be downloaded.
-//The component is activity-independent, so both Wordle and Word Search can use it.
+// The component is activity-independent, so both Wordle and Word Search can use it.
 export function ActivityPreview({
     html,
     title,
@@ -40,7 +40,7 @@ export function ActivityPreview({
                     sandbox="allow-scripts"
                     className="block min-h-0 w-full flex-1 bg-background"
                     style={{
-                        minHeight: `${height}px`,
+                        minHeight: `clamp(28rem, 75vh, ${height}px`,
                     }}
                 />
             </div>
