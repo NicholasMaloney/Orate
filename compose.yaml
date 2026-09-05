@@ -1,4 +1,11 @@
-# Defines Orate's local container services.
+# Note for future me: 
+# This docker compose file runs PostgreSQL, one-shot database setup, and Orate
+# PostgreSQL database (keeps running - persistent storage)
+# Prisma migration job (runs once then exits)
+# Prisma seed job (runs once then exits)
+# Orate application container (keeps running - starts after setup succeeds)
+
+# Gives this group of containers a standard name.
 name: orate
 
 services:
@@ -29,7 +36,69 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    restart: unless-stopped
 
+  migrate:
+    build:
+      context: .
+      target: database-tools
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL must be set}
+    command:
+      - npx
+      - --no-install
+      - prisma
+      - migrate
+      - deploy
+      - --config
+      - prisma7.config.ts
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    build:
+      context: .
+      target: database-tools
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL must be set}
+    command:
+      - npx
+      - --no-install
+      - prisma
+      - db
+      - seed
+      - --config
+      - prisma7.config.ts
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: runner
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:?DOCKER_DATABASE_URL must be set}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then(response=>{if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     restart: unless-stopped
 
 # A named volume preserves data when the container is recreated.
