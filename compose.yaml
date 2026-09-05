@@ -1,3 +1,11 @@
+# Note for future me: 
+  # This docker compose file handles running services: 
+    # PostgreSQL database (keeps running - persistent storage)
+    # Prisma migration job (runs once then exits)
+    # Prisma seed job (runs once then exits)
+    # Orate application container (keeps running - starts after setup succeeds)
+
+
 # Defines Orate's local container services.
 name: orate
 

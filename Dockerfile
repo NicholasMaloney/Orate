@@ -1,3 +1,7 @@
+# Note for Future me: 
+    # Dockefile builds to prof image of Orate 
+    # It also generates the Prisma Client because the application needs it to communicate with the database.
+
 FROM node:22-bookworm-slim AS dependencies
 
 WORKDIR /app
