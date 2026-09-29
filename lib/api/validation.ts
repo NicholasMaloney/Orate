@@ -37,6 +37,52 @@ export const difficultySchema = z.enum([
     "challenging",
 ]); 
 
+export const metricActivityTypeSchema = z.enum([
+    "wordle",
+    "word-search",
+]);
+
+export const generationOutcomeSchema = z.enum([
+    "success",
+    "failure",
+]);
+
+/* Input validation for the eventual /api/metrics endpoint
+- generationMetricSchema: describes what a generation metric must look like, e.g. kind = generation, activityType = wordle, outcome = success
+- pageViewMetricSchema: describes how long a user was viewing either the wordle or word-search activity, e.g. kind = page-view, path = /word-search, durationMs = 45000
+*/
+const generationMetricSchema = z
+    .object({
+        kind: z.literal("generation"), // kind must = generation 
+        activityType: metricActivityTypeSchema,
+        outcome: generationOutcomeSchema,
+        message: z
+            .string()
+            .trim()
+            .min( 1, "message must contain at least on character.",)
+            .max(200, "Message must contain no more than 200 characters.",)
+            .optional(),
+    })
+    .strict(); // makes sure only the properties defined by this scheme are allowed, zod then validates, transforms, then passes input to prisma
+const pageViewMetricSchema = z
+    .object({
+        kind: z.literal("page-view"),
+        path: z.enum([
+            "/wordle",
+            "/word-search",
+        ]),
+        durationMs: z
+            .number()
+            .int("Duration must be an integer",)
+            .min(1_000, "Duration must be at least 1,000 milliseconds.",)
+            .max(14_400_000, "Duration must not exceed four hours.",),
+    })
+    .strict();
+
+// Combines both (generationMetricSchema, pageViewMetricSchema) schemas.
+// Uses "kind" to validate and identify the correct metric type. "generation" → generationMetricSchem | "page-view" → pageViewMetricSchema
+export const createMetricSchema = z.discriminatedUnion("kind", [generationMetricSchema, pageViewMetricSchema,]);
+
 const descriptionSchema = z
     .string()
     .trim()

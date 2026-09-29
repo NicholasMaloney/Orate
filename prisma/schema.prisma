@@ -1,11 +1,11 @@
-/** 
-Notes for future me :) 
-- ActivityDifficulty prevents invalid difficulty strings at the database level.
-- wordId and wordListId are foreign keys connecting configurations to their content.
-- Relation arrays provide reverse navigation, such as retrieving every Wordle configuration using a word.
-- onDelete: Restrict protects saved activities from silently becoming invalid.
-- @@index makes configuration lookups by word or list more efficient.
-**/ 
+/**
+ * Notes for future me :)
+ * - ActivityDifficulty prevents invalid difficulty strings at the database level.
+ * - wordId and wordListId are foreign keys connecting configurations to their content.
+ * - Relation arrays provide reverse navigation, such as retrieving every Wordle configuration using a word.
+ * - onDelete: Restrict protects saved activities from silently becoming invalid.
+ * - @@index makes configuration lookups by word or list more efficient.
+ */
 
 // Generates the type-safe client into an existing ignored directory.
 generator client {
@@ -23,6 +23,24 @@ enum ActivityDifficulty {
   EASY
   STANDARD
   CHALLENGING
+}
+
+// Identifies the activity involved in a generation event. Used to seperate wordle / word search usage for dashboard
+enum ActivityType {
+  WORDLE
+  WORD_SEARCH
+}
+
+// Records whether an activity was generated successfully.
+enum GenerationOutcome {
+  SUCCESS
+  FAILURE
+}
+
+// Distinguishes real metrics from simulated (seeded) demonstration data.
+enum MetricSource {
+  LIVE
+  SIMULATED
 }
 
 // A teacher-created collection of words used by activities.
@@ -105,4 +123,31 @@ model WordSearchConfiguration {
   wordList WordList @relation(fields: [wordListId], references: [id], onDelete: Restrict)
 
   @@index([wordListId])
+}
+
+// Records one sucessful or failed activity generation attempt.
+model ActivityGeneration {
+  id           String            @id @default(uuid()) @db.Uuid
+  activityType ActivityType
+  outcome      GenerationOutcome
+  source       MetricSource      @default(LIVE)
+  message      String?
+  createdAt    DateTime          @default(now())
+
+  @@index([activityType, outcome])
+  @@index([source])
+  @@index([createdAt])
+}
+
+// Records activity time spent on a tracked application page in milliseconds.
+model PageView {
+  id         String       @id @default(uuid()) @db.Uuid
+  path       String
+  durationMs Int
+  source     MetricSource @default(LIVE)
+  createdAt  DateTime     @default(now())
+
+  @@index([path])
+  @@index([source])
+  @@index([createdAt])
 }
