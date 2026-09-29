@@ -62,13 +62,13 @@ export async function POST(
             });
         }
 
-        return successResponse({record:true,}, 201,);
+        return successResponse({recorded:true,}, 201,);
 
     } catch (error) {
         console.error("Unable to record an observability metric.",error,); 
         return errorResponse(
             "METRIC_RECORDING_FAILED",
-            "The metric could not be recorded",
+            "The metric could not be recorded.",
             500,
         );
     }

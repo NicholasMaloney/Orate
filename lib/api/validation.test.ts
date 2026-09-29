@@ -5,6 +5,7 @@ import {
 } from "vitest";
 
 import {
+    createMetricSchema,
     createWordListSchema,
     createWordSchema,
     createWordSearchConfigurationSchema,
@@ -126,6 +127,101 @@ describe("API validation", () => {
 
         expect(result.success).toBe(false);
     });
+
+    it("accepts a successful Wordle feneration metric", () => {
+        const result = createMetricSchema.parse({
+            kind: "generation",
+            activityType: "wordle",
+            outcome: "success",
+        });
+
+        expect(result).toEqual({
+            kind: "generation",
+            activityType: "wordle",
+            outcome: "success", 
+        });
+    });
+
+    it("accepts and trims a Word Search failure message", () => {
+        const result = createMetricSchema.parse({
+            kind: "generation",
+            activityType: "word-search",
+            outcome: "failure",
+            message: "A word exceeded the grid size.",
+        });
+
+        expect(result).toEqual({
+            kind: "generation",
+            activityType: "word-search",
+            outcome: "failure", 
+            message: "A word exceeded the grid size.",
+        });
+    });
+
+    it("accepts a tracked builder page view", () => {
+        const result = createMetricSchema.parse({
+            kind: "page-view",
+            path: "/wordle",
+            durationMs: 45_000,
+        });
+
+        expect(result).toEqual({
+            kind: "page-view",
+            path: "/wordle",
+            durationMs: 45_000,
+        });
+    });
+
+    it("rejects an untracked page path", () => {
+        const result = createMetricSchema.safeParse({
+            kind: "page-view",
+            path: "/settings",
+            durationMs: 45_000,
+        });
+
+        expect(result.success).toBe(false);
+    });
+
+    it.each([
+        -1,
+        999,
+        14_400_001,
+    ])(
+        "rejects unsupported page-view duration",
+        (durationMs) => {
+            const result =
+                createMetricSchema.safeParse({
+                    kind: "page-view",
+                    path: "/wordle",
+                    durationMs,
+                });
+
+            expect(result.success).toBe(false);
+        },
+    );
+
+    it("rejects a client supplied metric source", () => {
+        const result = createMetricSchema.safeParse({
+            kind: "generation",
+            activityType: "wordle",
+            outcome: "success",
+            source: "SIMULATED",
+        });
+
+        expect(result.success).toBe(false);
+    });
+
+    it("rejects a generation message over 200 characters", () => {
+        const result = createMetricSchema.safeParse({
+            kind: "generation",
+            activityType: "wordle",
+            outcome: "failure",
+            message: "x".repeat(201),
+        });
+
+        expect(result.success).toBe(false);
+    });
+
 
     it("parses and validates a JSON request", async () => {
         const request = new Request(
