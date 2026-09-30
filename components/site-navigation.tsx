@@ -16,6 +16,10 @@ const PRIMARY_LINKS = [
         label: "Home",
     },
     {
+        href: "/dashboard",
+        label: "Dashboard",
+    },
+    {
         href: "/library",
         label: "Library",
     },
