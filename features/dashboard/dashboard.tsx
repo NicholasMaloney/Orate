@@ -31,6 +31,20 @@ function formatSeconds(
         ? "No data"
         : `${seconds.toFixed(1)} seconds`;
 }
+// Operational Warning colours based on count, e.g. more than 2 failed generations colour = orange.
+function warningTextColour(
+    count: number,
+): string {
+    if (count > 5) {
+        return "text-(--danger)";
+    }
+
+    if (count > 2) {
+        return "text-(--warning)";
+    }
+
+    return "text-foreground";
+}
 
 // Displays one dashboard value with supporting text.
 function SummaryCard({
@@ -227,14 +241,14 @@ export function Dashboard() {
 
                     <p
                         className={`mt-2 font-semibold ${health
-                                ? "text-(--success)"
-                                : "text-(--danger)"
+                            ? "text-(--success)"
+                            : "text-(--danger)"
                             }`}
                         role="status"
                     >
                         {health
-                            ? "Healthy — PostgreSQL connected"
-                            : "Unavailable — check the application and database"}
+                            ? "Healthy: PostgreSQL connected"
+                            : "Unavailable: check the application and database"}
                     </p>
 
                     <p className="mt-2 text-sm text-(--muted-text)">
@@ -358,32 +372,32 @@ export function Dashboard() {
                                         key={
                                             activity.activityType
                                         }
-                                        className="border-b border-(--border)"
+                                        className="border-b border-(--border) font-semibold"
                                     >
                                         <th
                                             scope="row"
-                                            className="px-3 py-3"
+                                            className="px-3 py-3 "
                                         >
                                             {activityLabel(
                                                 activity.activityType,
                                             )}
                                         </th>
-                                        <td className="px-3 py-3">
+                                        <td className="px-3 py-3 font-semibold">
                                             {
                                                 activity.createdCount
                                             }
                                         </td>
-                                        <td className="px-3 py-3 text-(--success)">
+                                        <td className="px-3 py-3 font-semibold text-(--success)">
                                             {
                                                 activity.successfulGenerationCount
                                             }
                                         </td>
-                                        <td className="px-3 py-3 text-(--danger)">
+                                        <td className="px-3 py-3 font-semibold text-(--danger)">
                                             {
                                                 activity.failedGenerationCount
                                             }
                                         </td>
-                                        <td className="px-3 py-3">
+                                        <td className="px-3 py-3 font-semibold">
                                             {activity.successRate ===
                                                 null
                                                 ? "No data"
@@ -445,10 +459,7 @@ export function Dashboard() {
 
                 <section
                     aria-labelledby="warnings-heading"
-                    className={`rounded-2xl border p-(--panel-spacing) shadow-sm ${warningCount > 0
-                            ? "border-(--warning) bg-(--warning-soft)"
-                            : "border-(--border) bg-(--surface)"
-                        }`}
+                    className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) shadow-sm"
                 >
                     <h2
                         id="warnings-heading"
@@ -458,27 +469,40 @@ export function Dashboard() {
                     </h2>
 
                     {warningCount === 0 ? (
-                        <p className="mt-4 text-(--success)">
+                        <p className="mt-5 text-(--success)">
                             No unusual states are currently recorded.
                         </p>
                     ) : (
-                        <ul className="mt-4 list-disc space-y-2 pl-5">
-                            {data.emptyWordListCount >
-                                0 ? (
-                                <li>
-                                    {
-                                        data.emptyWordListCount
-                                    }{" "}
-                                    empty word lists need content.
+                        <ul className="mt-5 space-y-4">
+                            {data.emptyWordListCount > 0 ? (
+                                <li
+                                    className="flex items-center justify-between gap-4 border-b border-(--border) pb-2 font-semibold"
+                                >
+                                    <span className={warningTextColour(data.emptyWordListCount)}>
+                                        Empty word lists
+                                    </span>
+
+                                    <span className={warningTextColour(data.emptyWordListCount)}>
+                                        {
+                                            data.emptyWordListCount
+                                        }
+                                    </span>
                                 </li>
                             ) : null}
-                            {data.failedGenerationCount >
-                                0 ? (
-                                <li>
-                                    {
-                                        data.failedGenerationCount
-                                    }{" "}
-                                    failed generations are recorded.
+
+                            {data.failedGenerationCount > 0 ? (
+                                <li
+                                    className="flex items-center justify-between gap-4 border-b border-(--border) pb-2 font-semibold"
+                                >
+                                    <span className={warningTextColour(data.failedGenerationCount)}>
+                                        Failed generations
+                                    </span>
+
+                                    <span className={warningTextColour(data.failedGenerationCount)}>
+                                        {
+                                            data.failedGenerationCount
+                                        }
+                                    </span>
                                 </li>
                             ) : null}
                         </ul>
@@ -522,7 +546,7 @@ export function Dashboard() {
                                             {activityLabel(
                                                 configuration.activityType,
                                             )}
-                                            {" — "}
+                                            {": "}
                                             {
                                                 configuration.difficulty
                                             }

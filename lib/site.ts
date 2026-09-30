@@ -3,7 +3,7 @@
 export const SITE_NAME = "Orate";
 
 export const SITE_TITLE =
-    "Assessment 2: Full Stack Activity Builder";
+    "Assessment 3: Data Driven Activity Builder";
 
 export const SITE_DESCRIPTION =
     "A teacher-facing builder for playable phoneme Wordle and Word Search activities.";
