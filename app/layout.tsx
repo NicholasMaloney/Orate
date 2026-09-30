@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { cookies } from "next/headers";
 import { PreferenceProvider } from "@/components/preference-provider";
+import { PageViewTracker } from "@/components/page-view-tracker";
 import { colorSchemeForTheme, PREFERENCE_COOKIE_NAMES, preferencesFromCookies, } from "@/lib/preferences";
 import { SITE_DESCRIPTION, SITE_NAME, } from "@/lib/site";
+
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -85,6 +87,8 @@ export default async function RootLayout({
                         initialPreferences
                     }
                 >
+                     <PageViewTracker />
+                    
                     <a
                         href="#main-content"
                         className="sr-only z-50 rounded-md bg-(--action) px-4 py-2 text-(--action-text) focus:fixed focus:left-4 focus:top-4 focus:not-sr-only focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"

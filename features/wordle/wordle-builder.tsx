@@ -6,6 +6,7 @@ import { usePreferences } from "@/components/preference-provider";
 import { SavedConfigurationPanel } from "@/features/activities/saved-configuration-panel";
 import { useActivityContent } from "@/features/activities/use-activity-content";
 import { useSavedConfigurations } from "@/features/activities/use-saved-configurations";
+import {  useGenerationMetric } from "@/features/metrics/use-generation-metric";
 import { downloadHtmlFile } from "@/lib/download";
 import { buildStandaloneWordleHtml } from "@/lib/standalone";
 import type { Difficulty, Phoneme, WordleConfigurationRecord } from "@/lib/types";
@@ -13,6 +14,7 @@ import {
     DIFFICULTY_DETAILS,
     DIFFICULTY_ORDER,
 } from "@/lib/difficulty";
+import { Underdog } from "next/font/google";
 
 
 
@@ -223,6 +225,53 @@ export function WordleBuilder() {
                     : "The Wordle could not be generated.";
         }
     }
+
+    // Error message if activity failed to generate, empty word list, incomplete phoneme data, has do distractor characters 
+    const metricFailureMessage = 
+        generationError || 
+        (
+            contentState === "ready" && 
+            activeContent &&
+            activeContent.words.length === 0 
+                ? "The selected word list is empty."
+                : activeContent && 
+                    selectedWord &&
+                    !hasCompleteSequence
+                    ? "The selected word has incomplete phoneme data."
+                    : activeContent &&
+                        selectedWord && 
+                        !hasDistractor
+                        ? "The selected list does not contain a distractor phoneme."
+                        : ""
+        );
+    // Create a unique description of the current Wordle setup. distinct Wordle state is identified by <list-id>:<word-id>:<difficulty>:<hints-enabled>
+    // Changing the list, word, difficulty, or hints creates a new setup.
+    const generationMetricKey = 
+        contentState === "ready" &&
+        selectedListId
+            ? [
+                selectedListId,
+                selectedWord?.id ?? "none",
+                difficulty,
+                String(hintsEnabled),
+            ].join(":")
+            : null;
+    
+    // Record this Wordle setup once during the current browser session.
+    useGenerationMetric({
+        activityType: "wordle",
+        generationKey: generationMetricKey,
+        outcome: standaloneHtml
+            ? "success"
+            : metricFailureMessage
+                ? "failure"
+                : null, 
+        message: 
+            metricFailureMessage || 
+            undefined,
+    });
+        
+        
 
     function handleDownload() {
         if (
