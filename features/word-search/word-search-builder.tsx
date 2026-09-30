@@ -10,6 +10,7 @@ import type { Difficulty, WordSearchConfig, WordSearchConfigurationRecord } from
 import { ActivityPreview } from "@/components/activity-preview";
 import { SavedConfigurationPanel } from "@/features/activities/saved-configuration-panel";
 import { useSavedConfigurations } from "@/features/activities/use-saved-configurations";
+import { useGenerationMetric } from "@/features/metrics/use-generation-metric";
 
 // Describes how each Word Seach difficulty affects the puzzle 
 // The generator contains the actual rules this just displays / explains the rules to the teacher and/or speach path
@@ -146,6 +147,48 @@ export function WordSearchBuilder() {
                     : "The puzzle could not be generated.";
         }
     }
+
+    // Error message if activity failed to generate, empty word list, incomplete phoneme data, has do distractor characters 
+    const metricFailureMessage =
+        generationError ||
+        (
+            contentState === "ready" &&
+            activeContent && 
+            activeContent.words.length === 0
+                ? "The selected word list is empty."
+                : contentState === "ready" &&
+                    activeContent && 
+                    activeContent.phonemes.length === 0 
+                    ? "The selected word list has no usable phonemes."
+                    : ""
+        )
+    
+    // Create a unique description of the current word-search setup. distinct word search state is identified by <list-id>:<difficulty>:<seed>:<hints-enabled>
+    // Changing the word list, seed, difficulty, or hints creates a new setup.
+    const generationMetricKey = 
+        contentState === "ready" &&
+        selectedListId
+            ? [
+                selectedListId,
+                difficulty,
+                String(seed),
+                String(hintsEnabled),
+            ].join(":")
+            : null;
+    
+    // Record this  setup once during the current browser session.
+    useGenerationMetric({
+        activityType: "word-search",
+        generationKey: generationMetricKey,
+        outcome: standaloneHtml
+            ? "success"
+            : metricFailureMessage
+                ? "failure"
+                : null,
+        message: 
+            metricFailureMessage || 
+            undefined,
+    });
 
     const canSaveConfiguration =
         selectedListId.length > 0 &&
