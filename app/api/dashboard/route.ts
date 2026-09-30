@@ -4,12 +4,12 @@ import { getDatabase } from "@/lib/database/client";
 import { toRuntimeDifficulty } from "@/lib/database/configuration-mappers";
 import type { DashboardActivitySummary, DashboardActivityType, DashboardData } from "@/lib/types";
 
-// Route needs node js cause it connects to postgresql. 
+// Route needs node js cause it connects to postgresql.
 export const runtime = "nodejs";
 // Always calculate current dashboard info, don't return an old saved response.
 export const dynamic = "force-dynamic";
 
-// The activity types that appear in the dashboard, even if there are not generation attempts. 
+// The activity types that appear in the dashboard, even if there are not generation attempts.
 const ACTIVITY_TYPES = [
     ActivityType.WORDLE,
     ActivityType.WORD_SEARCH,
@@ -31,7 +31,7 @@ function toPublicActivityType(
         : "word-search";
 }
 
-// Calculates the percentage of successful attempts. Null when not attempts exist 
+// Calculates the percentage of successful attempts. Null when not attempts exist
 function percentage(
     successCount: number,
     failureCount: number,
@@ -45,13 +45,13 @@ function percentage(
         );
 }
 
-// Gets current content, activity, configuration, and usage statistics for the dashboard. 
+// Gets current content, activity, configuration, and usage statistics for the dashboard.
 export async function GET(): Promise<Response> {
     try {
         const database = getDatabase();
 
         // These database requests don't depend on each other, so they start togehter to reduce wait time
-        // The order of results (consts) must match the order of the database.xxx requests below. 
+        // The order of results (consts) must match the order of the database.xxx requests below.
         const [
             wordListCount,
             wordCount,
@@ -148,14 +148,14 @@ export async function GET(): Promise<Response> {
         const activities: DashboardActivitySummary[] =
             ACTIVITY_TYPES.map(
                 (activityType) => {
-                    
-                    // Find the successful generation total for this activity, if not records then 0 
+
+                    // Find the successful generation total for this activity, if not records then 0
                     const successfulGenerationCount = generationGroups.find(
                         (group) =>
                             group.activityType === activityType &&
                             group.outcome === GenerationOutcome.SUCCESS,
                     )?._count._all ?? 0;
-                    
+
                     // Find the failed generation total for this activity.
                     const failedGenerationCount = generationGroups.find(
                         (group) =>
@@ -179,14 +179,14 @@ export async function GET(): Promise<Response> {
                     };
                 },
             );
-        
+
         // Add the successful totals from both activities.
         const generatedOutputCount =
             activities.reduce(
                 (total, activity) =>
                     total + activity.successfulGenerationCount, 0,
             );
-        
+
         // Add the failed totals from both activities.
         const failedGenerationCount =
             activities.reduce(
@@ -208,7 +208,7 @@ export async function GET(): Promise<Response> {
                 mostUsedActivity.count > 0
                 ? mostUsedActivity.activityType
                 : null;
-        
+
         // Builds a page-time summary for both builder pages.
         const pageAverages =
             PAGE_PATHS.map((path) => {
@@ -239,27 +239,27 @@ export async function GET(): Promise<Response> {
                             ),
                 };
             });
-        
+
         // Add the generation and page-view totals for one source.
         // This is used to show how much dashboard data came from
         // real use and how much came from simulated seed records.
         const sourceCount = (
             source: MetricSource,
-        ) => 
+        ) =>
         (
             generationSourceGroups.find(
-                (group) => 
+                (group) =>
                     group.source === source,
             )?._count._all ?? 0
-        ) + 
+        ) +
         (
             pageSourceGroups.find(
-                (group) => 
+                (group) =>
                     group.source === source,
             )?._count._all ?? 0
         );
-        
-        // Give Wordle and Word Search configurations the same shape, so they can appear together in on recent activity list. 
+
+        // Give Wordle and Word Search configurations the same shape, so they can appear together in on recent activity list.
         const recentConfigurations = [
             ...recentWordleConfigurations.map(
                 (configuration) => ({
@@ -279,15 +279,15 @@ export async function GET(): Promise<Response> {
                     updatedAt: configuration.updatedAt.toISOString(),
                 }),
             ),
-        ] // most recent updated first 
-            .sort((left, right) => 
+        ] // most recent updated first
+            .sort((left, right) =>
                 right.updatedAt.localeCompare(
                     left.updatedAt,
                 ),
             )
-            // Only return 6 setups for both activities 
+            // Only return 6 setups for both activities
             .slice(0, 6);
-        
+
         // Combine all calculated values into the public dashboard response.
         const data: DashboardData = {
             wordListCount,
@@ -296,7 +296,7 @@ export async function GET(): Promise<Response> {
             emptyWordListCount,
             generatedOutputCount,
             failedGenerationCount,
-            averageTimeOnPageSeconds: 
+            averageTimeOnPageSeconds:
                 pageAggregate._avg.durationMs ==
                 null
                     ? null
@@ -312,7 +312,7 @@ export async function GET(): Promise<Response> {
                 live: sourceCount(MetricSource.LIVE,),
                 simulated: sourceCount(MetricSource.SIMULATED),
             },
-            generatedAt: new Date().toISOString(),  
+            generatedAt: new Date().toISOString(),
         };
 
         return successResponse(data);
@@ -320,7 +320,7 @@ export async function GET(): Promise<Response> {
         console.error(
             "Unable to load dashboard statistics.", error,
         );
-        
+
         // Return a clear message without exposing database details.
         return errorResponse(
             "DASHBOARD_UNAVAILABLE",

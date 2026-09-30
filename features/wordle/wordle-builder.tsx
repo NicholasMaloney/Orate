@@ -14,8 +14,6 @@ import {
     DIFFICULTY_DETAILS,
     DIFFICULTY_ORDER,
 } from "@/lib/difficulty";
-import { Underdog } from "next/font/google";
-
 
 
 export function WordleBuilder() {

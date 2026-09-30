@@ -13,7 +13,7 @@ export interface Phoneme {
  * The ID is used internally, while 'english' and 'ipa' are displayed to
  * teachers and learners.
  */
-export interface PhonemeWord { // interface = schema similar to JSON 
+export interface PhonemeWord { // interface = schema similar to JSON
     readonly id: string;
     readonly english: string;
     readonly ipa: string;      // the IPA transcription of the entire word
@@ -47,7 +47,7 @@ export interface WordSearchActivityContent {
     readonly phonemes: readonly Phoneme[];
 }
 
-// Difficulty values that will be accepted by Wordle and Word search 
+// Difficulty values that will be accepted by Wordle and Word search
 export type Difficulty = "easy" | "standard" | "challenging"
 
 // Colour palettes supported by the teacher interface. Not the activities
@@ -72,7 +72,7 @@ export interface PreferenceState {
     readonly density: LayoutDensity;
 }
 
-// Settings / config for teachers when creating a Wordle activity - will be used later for the game export function 
+// Settings / config for teachers when creating a Wordle activity - will be used later for the game export function
 export interface WordleConfig {
     readonly wordId: string;
     readonly difficulty: Difficulty;
@@ -97,7 +97,7 @@ export interface WordleConfigurationRecord {
     };
 }
 
-// Describes how a guessed phoneme relates to the target word. 
+// Describes how a guessed phoneme relates to the target word.
 // correct = right phoneme, right pos
 // present = right phoneme, different pos
 // absent = either not contained in the word or the guessed phoneme has no remaining match
@@ -157,7 +157,7 @@ export interface WordSearchPuzzle {
 }
 
 // The two activities used for the dashboard
-export type DashboardActivityType = 
+export type DashboardActivityType =
     | "wordle"
     | "word-search";
 
@@ -172,11 +172,11 @@ export interface DashboardActivitySummary {
 
 // Stores the page-view information for one activity builder.
 export interface DashboardPageAverage {
-    readonly path: 
+    readonly path:
         | "/wordle"
         | "/word-search";
     readonly viewCount: number;
-    readonly averageSeconds: number | null; 
+    readonly averageSeconds: number | null;
 }
 
 // Describes one recently updated saved activity setup.
