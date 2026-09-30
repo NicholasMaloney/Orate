@@ -165,7 +165,7 @@ export type DashboardActivityType =
 export interface DashboardActivitySummary {
     readonly activityType: DashboardActivityType;
     readonly createdCount: number;
-    readonly successfulGenerationCocunt: number;
+    readonly successfulGenerationCount: number;
     readonly failedGenerationCount: number;
     readonly successRate: number | null;
 }
