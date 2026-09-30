@@ -226,7 +226,7 @@ export function WordleBuilder() {
         }
     }
 
-    // Erro message if activity failed to generate, empty word list, incomplete phoneme data, has do distractor characters 
+    // Error message if activity failed to generate, empty word list, incomplete phoneme data, has do distractor characters 
     const metricFailureMessage = 
         generationError || 
         (
