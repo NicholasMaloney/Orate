@@ -13,7 +13,7 @@ export interface Phoneme {
  * The ID is used internally, while 'english' and 'ipa' are displayed to
  * teachers and learners.
  */
-export interface PhonemeWord { // interface = schema similar to JSON 
+export interface PhonemeWord { // interface = schema similar to JSON
     readonly id: string;
     readonly english: string;
     readonly ipa: string;      // the IPA transcription of the entire word
@@ -47,7 +47,7 @@ export interface WordSearchActivityContent {
     readonly phonemes: readonly Phoneme[];
 }
 
-// Difficulty values that will be accepted by Wordle and Word search 
+// Difficulty values that will be accepted by Wordle and Word search
 export type Difficulty = "easy" | "standard" | "challenging"
 
 // Colour palettes supported by the teacher interface. Not the activities
@@ -72,7 +72,7 @@ export interface PreferenceState {
     readonly density: LayoutDensity;
 }
 
-// Settings / config for teachers when creating a Wordle activity - will be used later for the game export function 
+// Settings / config for teachers when creating a Wordle activity - will be used later for the game export function
 export interface WordleConfig {
     readonly wordId: string;
     readonly difficulty: Difficulty;
@@ -97,7 +97,7 @@ export interface WordleConfigurationRecord {
     };
 }
 
-// Describes how a guessed phoneme relates to the target word. 
+// Describes how a guessed phoneme relates to the target word.
 // correct = right phoneme, right pos
 // present = right phoneme, different pos
 // absent = either not contained in the word or the guessed phoneme has no remaining match
@@ -154,4 +154,64 @@ export interface WordSearchPuzzle {
 
     // Records which seed produced this puzzle.
     readonly seed: number;
+}
+
+// The two activities used for the dashboard
+export type DashboardActivityType =
+    | "wordle"
+    | "word-search";
+
+// Stores the dashboard totals for one activity type.
+export interface DashboardActivitySummary {
+    readonly activityType: DashboardActivityType;
+    readonly createdCount: number;
+    readonly successfulGenerationCount: number;
+    readonly failedGenerationCount: number;
+    readonly successRate: number | null;
+}
+
+// Stores the page-view information for one activity builder.
+export interface DashboardPageAverage {
+    readonly path:
+        | "/wordle"
+        | "/word-search";
+    readonly viewCount: number;
+    readonly averageSeconds: number | null;
+}
+
+// Describes one recently updated saved activity setup.
+export interface DashboardConfigurationSummary {
+    readonly id: string;
+    readonly name: string;
+    readonly activityType: DashboardActivityType;
+    readonly difficulty: Difficulty;
+    readonly updatedAt: string;
+}
+
+// Complete information returned by the dashboard API.
+export interface DashboardData {
+    readonly wordListCount: number;
+    readonly wordCount: number;
+    readonly phonemeCount: number;
+    readonly emptyWordListCount: number;
+    readonly generatedOutputCount: number;
+    readonly failedGenerationCount: number;
+    readonly averageTimeOnPageSeconds: number | null;
+    readonly mostUsedActivityType: DashboardActivityType | null;
+    readonly activities:
+        readonly DashboardActivitySummary[];
+    readonly pageAverages:
+        readonly DashboardPageAverage[];
+    readonly recentConfigurations:
+        readonly DashboardConfigurationSummary[];
+    readonly recordSources: {
+        readonly live: number;
+        readonly simulated: number;
+    };
+    readonly generatedAt: string;
+}
+
+export interface HealthStatusData {
+    readonly status: "healthy";
+    readonly database: "connected";
 }
