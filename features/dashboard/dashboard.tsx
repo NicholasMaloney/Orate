@@ -31,7 +31,7 @@ function formatSeconds(
         ? "No data"
         : `${seconds.toFixed(1)} seconds`;
 }
-// Operational Warning colours based on count, e.g. more than 2 failed generations colour = orange.
+// Applies stronger status colours as an individual warning count increases.
 function warningTextColour(
     count: number,
 ): string {
