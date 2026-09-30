@@ -155,3 +155,63 @@ export interface WordSearchPuzzle {
     // Records which seed produced this puzzle.
     readonly seed: number;
 }
+
+// The two activities used for the dashboard
+export type DashboardActivityType = 
+    | "wordle"
+    | "word-search";
+
+// Stores the dashboard totals for one activity type.
+export interface DashboardActivitySummary {
+    readonly activityType: DashboardActivityType;
+    readonly createdCount: number;
+    readonly successfulGenerationCocunt: number;
+    readonly failedGenerationCount: number;
+    readonly successRate: number | null;
+}
+
+// Stores the page-view information for one activity builder.
+export interface DashboardPageAverage {
+    readonly path: 
+        | "/wordle"
+        | "/word-search";
+    readonly viewCount: number;
+    readonly averageSeconds: number | null; 
+}
+
+// Describes one recently updated saved activity setup.
+export interface DashboardConfigurationSummary {
+    readonly id: string;
+    readonly name: string;
+    readonly activityType: DashboardActivityType;
+    readonly difficulty: Difficulty;
+    readonly updatedAt: string;
+}
+
+// Complete information returned by the dashboard API.
+export interface DashboardData {
+    readonly wordListCount: number;
+    readonly wordCount: number;
+    readonly phonemeCount: number;
+    readonly emptyWordListCount: number;
+    readonly generatedOutputCount: number;
+    readonly failedGenerationCount: number;
+    readonly averageTimeOnPageSeconds: number | null;
+    readonly mostUsedActivityType: DashboardActivityType | null;
+    readonly activities:
+        readonly DashboardActivitySummary[];
+    readonly pageAverages:
+        readonly DashboardPageAverage[];
+    readonly recentConfigurations:
+        readonly DashboardConfigurationSummary[];
+    readonly recordSources: {
+        readonly live: number;
+        readonly simulated: number;
+    };
+    readonly generatedAt: string;
+}
+
+export interface HealthStatusData {
+    readonly status: "healthy";
+    readonly database: "connected";
+}
