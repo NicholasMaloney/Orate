@@ -169,8 +169,14 @@ export function Dashboard() {
 
     // Loads the dashboard immediately and refreshes it every 30 seconds.
     useEffect(() => {
-        void loadDashboard();
+        // Schedules the initial request outside the synchronous
+        // effect body while still loading it immediately.
+        const initialLoadTimer =
+            window.setTimeout(() => {
+                void loadDashboard();
+            }, 0);
 
+        // Refreshes the dashboard every 30 seconds.
         const interval = window.setInterval(
             () => {
                 void loadDashboard();
@@ -179,6 +185,9 @@ export function Dashboard() {
         );
 
         return () => {
+            window.clearTimeout(
+                initialLoadTimer,
+            );
             window.clearInterval(interval);
             requestController.current?.abort();
         };
