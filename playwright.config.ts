@@ -1,16 +1,16 @@
 import { defineConfig, devices, } from "@playwright/test";
 
 export default defineConfig({
-    // Stores the test files here 
+    // Stores the test files here
     testDir: "./tests/e2e",
-    
+
     // Runs test files sequentially to avoid conflicts with shared database data
     fullyParallel: false,
     workers: 1,
-    
-    // Reports failures immediately 
+
+    // Reports failures immediately
     retries: 0,
-    
+
     // Prints results in the terminal and creates an HTML report.
     reporter: [
         ["list"],
