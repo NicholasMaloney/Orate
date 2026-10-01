@@ -12,6 +12,10 @@
 
 # Testing
 /coverage
+/playwright-report
+/test-results
+/lighthouse-reports
+*.jtl
 
 # Next.js
 /.next/

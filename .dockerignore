@@ -4,6 +4,10 @@ node_modules
 build
 coverage
 docs
+playwright-report
+test-results
+lighthouse-reports
+*.jtl
 
 .env
 .env.*
