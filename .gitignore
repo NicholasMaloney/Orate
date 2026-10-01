@@ -16,6 +16,7 @@
 /test-results
 /lighthouse-reports
 *.jtl
+/jmeter.log
 
 # Next.js
 /.next/

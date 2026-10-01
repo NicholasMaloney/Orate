@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jmeterTestPlan
+    version="1.2"
+    properties="5.0"
+    jmeter="5.6.3"
+>
+    <!--
+      Defines global behavior for the entire test plan.
+      Generated learner HTML is tested separately through Playwright.
+    -->
+<hashTree>
+    <TestPlan
+        guiclass="TestPlanGUI"
+        testclass="TestPlan"
+        testname="Orate staged load test"
+        enabled="true"
+    >
+
+        <stringProp name="TestPlan.comments"> Loads the Orate builders and their database-backed resources. Generated learner HTML is verified separately with Playwright.</stringProp>
+        <!-- Disables JMeter's additional functional-testing result storage. -->
+        <boolProp name="TestPlan.functional_mode">false</boolProp>
+
+        <!-- Runs tear-down actions if the test is manually stopped. -->
+        <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+
+        <!-- Allows thread groups to run concurrently if more are added later. -->
+        <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+
+        <!--
+        Container for optional global variables.
+        Runtime values in this plan are supplied through JMeter properties.
+        -->
+      <elementProp
+          name="TestPlan.user_defined_variables"
+          elementType="Arguments"
+          guiclass="ArgumentsPanel"
+          testclass="Arguments"
+          testname="User Defined Variables"
+          enabled="true"
+      >
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+
+      <!-- No additional Java classpath is required. -->
+      <stringProp name="TestPlan.user_define_classpath"/>
+    </TestPlan>
+
+    <!--
+      Every JMeter element is followed by a hashTree containing
+      its child configuration and test elements.
+    -->
+    <hashTree>
+
+      <!--
+        Simulates concurrent Orate users completing the HTTP workflow.
+      -->
+      <ThreadGroup
+          guiclass="ThreadGroupGui"
+          testclass="ThreadGroup"
+          testname="Orate user workflow"
+          enabled="true"
+      >
+        <!-- Continues the workflow when an individual request fails. -->
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+
+        <!-- Controls how many times each virtual user repeats the workflow. -->
+        <elementProp
+            name="ThreadGroup.main_controller"
+            elementType="LoopController"
+            guiclass="LoopControlPanel"
+            testclass="LoopController"
+            testname="Workflow loops"
+            enabled="true"
+        >
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+
+          <!--
+            Reads the loops property supplied with -Jloops.
+            Defaults to one iteration.
+          -->
+          <stringProp name="LoopController.loops">${__P(loops,1)}</stringProp>
+        </elementProp>
+
+        <!--
+          Number of virtual users, supplied with -Jusers.
+          Defaults to one user.
+        -->
+        <stringProp name="ThreadGroup.num_threads">${__P(users,1)}</stringProp>
+
+        <!--
+          Time taken to start all users, supplied with -Jramp_seconds.
+          Defaults to ten seconds.
+        -->
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_seconds,10)}</stringProp>
+
+        <!-- Preserves cookies between one user's workflow iterations. -->
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+
+        <!-- The test uses loop counts instead of a fixed scheduler duration. -->
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"/>
+        <stringProp name="ThreadGroup.delay"/>
+      </ThreadGroup>
+
+      <hashTree>
+
+        <!--
+          Shared connection settings inherited by every HTTP request.
+        -->
+        <ConfigTestElement
+            guiclass="HttpDefaultsGui"
+            testclass="ConfigTestElement"
+            testname="Orate HTTP defaults"
+            enabled="true"
+        >
+          <!-- No default query-string or form arguments are required. -->
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="HTTP variables"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <!--
+            Target host, port, and protocol can be overridden with:
+            -Jhost, -Jport, and -Jprotocol.
+          -->
+          <stringProp name="HTTPSampler.domain">${__P(host,127.0.0.1)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port,3000)}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${__P(protocol,http)}</stringProp>
+
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+
+          <!-- Each sampler supplies its own endpoint path. -->
+          <stringProp name="HTTPSampler.path"/>
+
+          <!-- Fails connections after five seconds. -->
+          <stringProp name="HTTPSampler.connect_timeout">5000</stringProp>
+
+          <!-- Fails responses that take longer than thirty seconds. -->
+          <stringProp name="HTTPSampler.response_timeout">30000</stringProp>
+        </ConfigTestElement>
+
+        <hashTree/>
+
+        <!--
+          Maintains browser-like cookies for each simulated user.
+        -->
+        <CookieManager
+            guiclass="CookiePanel"
+            testclass="CookieManager"
+            testname="Orate HTTP cookies"
+            enabled="true"
+        >
+          <collectionProp name="CookieManager.cookies"/>
+
+          <!-- Keeps cookies when a user starts another workflow loop. -->
+          <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+
+          <stringProp name="CookieManager.policy">standard</stringProp>
+          <stringProp name="CookieManager.implementation">org.apache.jmeter.protocol.http.control.HC4CookieHandler</stringProp>
+        </CookieManager>
+
+        <hashTree/>
+
+        <!-- Adds common HTTP headers to every request. -->
+        <HeaderManager
+            guiclass="HeaderPanel"
+            testclass="HeaderManager"
+            testname="Orate HTTP headers"
+            enabled="true"
+        >
+          <collectionProp name="HeaderManager.headers">
+
+            <!-- Allows HTML and JSON responses. -->
+            <elementProp
+                name="Accept"
+                elementType="Header"
+            >
+              <stringProp name="Header.name">Accept</stringProp>
+              <stringProp name="Header.value">*/*</stringProp>
+            </elementProp>
+
+            <!-- Identifies requests generated by this load test. -->
+            <elementProp
+                name="User-Agent"
+                elementType="Header"
+            >
+              <stringProp name="Header.name">User-Agent</stringProp>
+              <stringProp name="Header.value">ApacheJMeter/5.6.3 Orate staged load test</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+
+        <hashTree/>
+
+        <!--
+          Applies to every HTTP sampler in this thread group.
+          A request is considered successful only when it returns HTTP 200.
+        -->
+        <ResponseAssertion
+            guiclass="AssertionGui"
+            testclass="ResponseAssertion"
+            testname="Every request returns HTTP 200"
+            enabled="true"
+        >
+          <!--
+            "Asserion" is JMeter's historical property spelling
+            and should not be corrected.
+          -->
+          <collectionProp name="Asserion.test_strings">
+            <stringProp name="49586">200</stringProp>
+          </collectionProp>
+
+          <!-- Checks the HTTP response status code. -->
+          <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+
+          <boolProp name="Assertion.assume_success">false</boolProp>
+
+          <!-- Test type 8 means the response code must equal 200. -->
+          <intProp name="Assertion.test_type">8</intProp>
+        </ResponseAssertion>
+
+        <hashTree/>
+
+        <!--
+          Request 1: verifies that the application and PostgreSQL are healthy.
+        -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="01 - Health"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <!-- Empty connection values inherit the HTTP defaults. -->
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <stringProp name="HTTPSampler.path">/health</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!-- Request 2: loads the teacher-facing Wordle builder page. -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="02 - Wordle builder"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <stringProp name="HTTPSampler.path">/wordle</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!-- Request 3: loads the teacher-facing Word Search builder page. -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="03 - Word Search builder"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <stringProp name="HTTPSampler.path">/word-search</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!--
+          Request 4: retrieves all stored word lists as JSON.
+          The following extractor reads the first list's ID.
+        -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="04 - Word lists"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <stringProp name="HTTPSampler.path">/api/word-lists</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree>
+
+          <!--
+            Extracts $.data[0].id from the word-list JSON response
+            and stores it in the ${list_id} JMeter variable.
+          -->
+          <JSONPostProcessor
+              guiclass="JSONPostProcessorGui"
+              testclass="JSONPostProcessor"
+              testname="Extract first word-list ID"
+              enabled="true"
+          >
+            <stringProp name="JSONPostProcessor.referenceNames">list_id</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data[0].id</stringProp>
+
+            <!-- Selects the first matching result. -->
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+
+            <!--
+              Uses NOT_FOUND when the response contains no word lists.
+              The next request would then fail visibly instead of using
+              an empty or misleading ID.
+            -->
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+
+          <hashTree/>
+        </hashTree>
+
+        <!--
+          Request 5: loads activity-ready words and phonemes for
+          the word-list ID extracted by the previous request.
+        -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="05 - Activity content"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <!-- Inserts the extracted word-list ID into the request URL. -->
+          <stringProp name="HTTPSampler.path">/api/activity-content/word-lists/${list_id}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!-- Request 6: retrieves all saved Wordle configurations. -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="06 - Wordle configurations"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <stringProp name="HTTPSampler.path">/api/wordle-configurations</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!-- Request 7: retrieves all saved Word Search configurations. -->
+        <HTTPSamplerProxy
+            guiclass="HttpTestSampleGui"
+            testclass="HTTPSamplerProxy"
+            testname="07 - Word Search configurations"
+            enabled="true"
+        >
+          <elementProp
+              name="HTTPsampler.Arguments"
+              elementType="Arguments"
+              guiclass="HTTPArgumentsPanel"
+              testclass="Arguments"
+              testname="Request arguments"
+              enabled="true"
+          >
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+
+          <stringProp name="HTTPSampler.domain"/>
+          <stringProp name="HTTPSampler.port"/>
+          <stringProp name="HTTPSampler.protocol"/>
+          <stringProp name="HTTPSampler.contentEncoding"/>
+
+          <stringProp name="HTTPSampler.path">/api/word-search-configurations</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <boolProp name="HTTPSampler.monitor">false</boolProp>
+
+          <stringProp name="HTTPSampler.embedded_url_re"/>
+          <stringProp name="HTTPSampler.connect_timeout"/>
+          <stringProp name="HTTPSampler.response_timeout"/>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
