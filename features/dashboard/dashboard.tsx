@@ -439,28 +439,28 @@ export function Dashboard() {
                                     key={
                                         pageAverage.path
                                     }
-                                    className="flex items-start justify-between gap-4 border-b border-(--border) pb-4"
+                                    className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 border-b border-(--border) pb-4"
                                 >
-                                    <div>
-                                        <dt className="font-semibold">
-                                            {pageAverage.path ===
-                                                "/wordle"
-                                                ? "Wordle"
-                                                : "Word Search"}
-                                        </dt>
-                                        <dd className="text-sm text-(--muted-text)">
-                                            {
-                                                pageAverage.viewCount
-                                            }{" "}
-                                            recorded visits
-                                        </dd>
-                                    </div>
-                                    <dd className="font-semibold">
+                                
+                                    <dt className="font-semibold">
+                                        {pageAverage.path ===
+                                            "/wordle"
+                                            ? "Wordle"
+                                            : "Word Search"}
+                                    </dt>
+                                    <dd className="col-start-1 text-sm text-(--muted-text)">
+                                        {
+                                            pageAverage.viewCount
+                                        }{" "}
+                                        recorded visits
+                                    </dd>
+                                
+                                    <dd className="col-start-2 row-span-2 row-start-1 text-right font-semibold">
                                         {formatSeconds(
                                             pageAverage.averageSeconds,
                                         )}
                                     </dd>
-                                </div>
+                            </div>
                             ),
                         )}
                     </dl>
