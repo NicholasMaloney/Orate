@@ -4,6 +4,9 @@ export default defineConfig({
     // Stores the test files here
     testDir: "./tests/e2e",
 
+    // Keeps Playwright artifacts separate from saved load and accessibility evidence.
+    outputDir: "./test-results/playwright",
+
     // Runs test files sequentially to avoid conflicts with shared database data
     fullyParallel: false,
     workers: 1,
