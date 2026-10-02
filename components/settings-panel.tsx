@@ -143,7 +143,7 @@ export function SettingsPanel() {
 
                                     <span
                                         className={`mt-1 block text-sm ${isSelected
-                                            ? "text-(--action-text) opacity-90"
+                                            ? "text-(--action-text)"
                                             : "text-(--muted-text)"
                                             }`}
                                     >
@@ -213,7 +213,7 @@ export function SettingsPanel() {
 
                                         <span
                                             className={`mt-1 block text-sm ${isSelected
-                                                ? "text-(--action-text) opacity-90"
+                                                ? "text-(--action-text)"
                                                 : "text-(--muted-text)"
                                                 }`}
                                         >
