@@ -40,7 +40,7 @@ export function ActivityPreview({
                     sandbox="allow-scripts"
                     className="block min-h-0 w-full flex-1 bg-background"
                     style={{
-                        minHeight: `clamp(28rem, 75vh, ${height}px`,
+                        minHeight: `clamp(28rem, 75vh, ${height}px)`,
                     }}
                 />
             </div>

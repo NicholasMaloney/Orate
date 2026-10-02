@@ -299,9 +299,9 @@ export function WordleBuilder() {
                     className="rounded-2xl border border-(--border) bg-(--surface) p-(--panel-spacing) text-foreground shadow-sm"
                     aria-labelledby="wordle-controls-heading"
                 >
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
+                    <p className="text-sm font-semibold uppercase tracking-wider text-(--accent)">
                         Teacher Controls
-                    </h3>
+                    </p>
 
                     <h2 id="wordle-controls-heading" className="mt-1 text-2xl font-semibold">
                         Configure the Wordle Activity
