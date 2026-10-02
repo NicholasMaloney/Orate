@@ -441,7 +441,7 @@ export function Dashboard() {
                                     }
                                     className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 border-b border-(--border) pb-4"
                                 >
-                                
+
                                     <dt className="font-semibold">
                                         {pageAverage.path ===
                                             "/wordle"
@@ -454,7 +454,7 @@ export function Dashboard() {
                                         }{" "}
                                         recorded visits
                                     </dd>
-                                
+
                                     <dd className="col-start-2 row-span-2 row-start-1 text-right font-semibold">
                                         {formatSeconds(
                                             pageAverage.averageSeconds,
