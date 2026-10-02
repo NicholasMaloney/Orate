@@ -8,6 +8,7 @@ playwright-report
 test-results
 lighthouse-reports
 *.jtl
+/jmeter.log
 
 .env
 .env.*
