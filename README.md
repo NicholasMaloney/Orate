@@ -41,6 +41,8 @@ browser.
 - Prisma ORM 7 with PostgreSQL 18
 - Zod request validation
 - Vitest
+- Playwright
+- Apache JMeter 5.6.3
 - Docker and Docker Compose
 - Browser DOM, iframe, Blob, and download APIs
 
@@ -48,15 +50,26 @@ Orate is a full-stack application. Validated Route Handlers expose JSON APIs,
 Prisma maps application data, and PostgreSQL stores word lists, ordered
 phonemes, and reusable activity configurations.
 
-## Data and API
+## Architecture
 
 The main request flow is:
 
 ```text
 Teacher interface
-    → validated Next.js Route Handler
+    → Next.js Route Handler
+    → Zod validation
     → Prisma
     → PostgreSQL
+```
+Activity generation uses database content but runs in the browser:
+
+```text
+PostgreSQL content
+    → activity-content API
+    → React builder
+    → standalone HTML generator
+    ├── sandboxed preview
+    └── downloaded HTML file
 ```
 
 The API supports word lists, words, activity-ready content, saved Wordle
@@ -177,33 +190,154 @@ the local database is intentional.
 
 ## Project commands
 
-```powershell
-npm run dev
-npm run test:run
-npm run lint -- --no-cache
-npx tsc --noEmit --incremental false
-npm run build
-npm run db:validate
-```
-
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start the development server with live updates. |
 | `npm run test:run` | Run the complete Vitest suite once. |
+| `npm run test:e2e` | Run both Playwright workflows in headless Chromium. |
+| `npm run test:e2e:headed` | Run Playwright with a visible browser. |
+| `npm run test:e2e:report` | Open the generated Playwright HTML report. |
 | `npm run lint -- --no-cache` | Run ESLint without a stale cache. |
 | `npx tsc --noEmit --incremental false` | Type-check without emitting files. |
 | `npm run build` | Create the production Next.js build. |
 | `npm run db:generate` | Generate the Prisma client. |
 | `npm run db:validate` | Validate the Prisma schema and configuration. |
-| `npm run db:seed` | Run the repeatable starter-content seed. |
+| `npm run db:seed -- --config prisma7.config.ts` | Run the repeatable starter-content and simulated-metric seed. |
+| `npx --no-install prisma studio --config=./prisma7.config.ts` | Inspect local PostgreSQL records in Prisma Studio. |
 | `docker compose up --build --detach` | Build and start the complete stack. |
 | `docker compose down` | Stop containers while preserving database data. |
+
+### Inspecting the database
+
+PostgreSQL must already be running.
+
+Open Prisma Studio:
+
+```powershell
+npx --no-install prisma studio --config=./prisma7.config.ts
+```
+
+Prisma Studio provides a browser interface for inspecting local word
+lists, words, phonemes, configurations, `ActivityGeneration` records,
+and `PageView` records.
+
+## Testing
+
+### Playwright E2E Tests
+Install the Chromium browser once after installing dependencies:
+
+```powershell
+npx --no-install playwright install chromium
+```
+
+Start Orate before running the tests. Playwright targets
+`http://127.0.0.1:3000` by default.
+
+Run both workflows:
+
+```powershell
+npm run test:e2e
+```
+
+Run with a visible browser:
+
+```powershell
+npm run test:e2e:headed
+```
+
+Open the latest HTML report:
+
+```powershell
+npm run test:e2e:report
+```
+
+To test another running URL:
+
+```powershell
+$env:PLAYWRIGHT_BASE_URL = "http://127.0.0.1:3001"
+npm run test:e2e
+Remove-Item Env:PLAYWRIGHT_BASE_URL
+```
+
+The two workflows verify:
+
+1. A teacher can create, read, rename, and delete a Library word list.
+2. A generated Wordle loads database content, renders inside the
+   sandboxed learner iframe, exposes its learner controls, and updates
+   when the teacher changes difficulty.
+
+Playwright uses one worker because the workflows share database state.
+
+### JMeter Load Testing
+
+Prerequisites:
+
+- Apache JMeter 5.6.3 installed and available as `jmeter`.
+- Orate and PostgreSQL already running.
+- At least one stored word list.
+
+The JMeter workflow requests:
+
+1. `/health`
+2. `/wordle`
+3. `/word-search`
+4. `/api/word-lists`
+5. `/api/activity-content/word-lists/${list_id}`
+6. `/api/wordle-configurations`
+7. `/api/word-search-configurations`
+
+It extracts the first stored list ID, reuses cookies and HTTP
+connections, and asserts HTTP `200` for every request.
+
+Inspect or debug the plan in the JMeter GUI:
+
+```powershell
+jmeter -t .\tests\load\orate-workflows.jmx
+```
+
+Use non-GUI mode for load testing. This x10 example uses timestamped
+output paths so an existing report directory is not overwritten:
+
+```powershell
+New-Item `
+  -ItemType Directory `
+  -Force `
+  -Path .\test-results\jmeter |
+  Out-Null
+
+$runId = Get-Date -Format "yyyyMMdd-HHmmss"
+$stage = "x10"
+
+jmeter -n `
+  -t .\tests\load\orate-workflows.jmx `
+  -Jusers=10 `
+  -Jloops=1 `
+  -Jramp_seconds=10 `
+  -Jhost=127.0.0.1 `
+  -Jport=3000 `
+  -Jprotocol=http `
+  -l ".\test-results\jmeter\$stage-$runId.jtl" `
+  -e `
+  -o ".\test-results\jmeter\$stage-$runId-report"
+```
+
+Supported properties:
+
+| Property | Default | Purpose |
+| --- | --- | --- |
+| `users` | `1` | Number of JMeter threads/virtual users. |
+| `loops` | `1` | Complete workflows run by each user. |
+| `ramp_seconds` | `10` | Time used to start all users. |
+| `host` | `127.0.0.1` | Target host without protocol. |
+| `port` | `3000` | Target port. |
+| `protocol` | `http` | Target protocol. |
 
 ## Routes
 
 | Route | Purpose |
 | --- | --- |
 | `/` | Home and activity selection. |
+| `/dashboard` | Operational reporting and system health. |
 | `/wordle` | Configure, preview, and download Phoneme Wordle. |
 | `/word-search` | Configure, regenerate, preview, and download Word Search. |
 | `/about` | Project purpose, technical scope, and creator details. |
