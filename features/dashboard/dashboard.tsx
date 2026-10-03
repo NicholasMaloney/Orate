@@ -429,7 +429,7 @@ export function Dashboard() {
                         id="builder-time-heading"
                         className="text-xl font-semibold"
                     >
-                        Builder time
+                        Activity Usage
                     </h2>
 
                     <dl className="mt-5 space-y-4">
