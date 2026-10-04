@@ -13,11 +13,14 @@
 # Testing
 /coverage
 /playwright-report
-/test-results
 /lighthouse-reports
 *.jtl
 /jmeter.log
-
+test-results/.last-run.json
+test-results/playwright
+# Raw JMeter results/logs
+test-results/jmeter/*.jtl
+test-results/jmeter/*.log
 # Next.js
 /.next/
 /out/
