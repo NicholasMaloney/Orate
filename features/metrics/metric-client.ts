@@ -55,6 +55,7 @@ export function queueMetric(
     const body = JSON.stringify(payload);
 
     // sendBeacon is preferred when browser might close the current page. 
+    // sendBeacon sends a small POST request
     if (
         typeof navigator !== "undefined" && 
         navigator.sendBeacon(

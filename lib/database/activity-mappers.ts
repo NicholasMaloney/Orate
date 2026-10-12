@@ -67,6 +67,7 @@ function normaliseStoredPhonemeSymbol(
 }
 
 // Activity identity is derived from normalised Unicode code points.
+// Each IPA symbol is converted to a predictable identifier based on its Unicode 
 export function createCanonicalPhonemeId(
     ipaSymbol: string,
 ): string {

@@ -84,6 +84,7 @@ export function PageViewTracker() {
 
             sent = true;
 
+            // Sends metric to DB via a POST request. 
             queueMetric({
                 kind: "page-view",
                 path: trackedPath,
